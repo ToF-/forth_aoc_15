@@ -42,15 +42,33 @@ variable ribbon
 : compute-order
   3dup wrapping paper +!
        attaching ribbon +! ;
-0 paper !  
-0 ribbon !
 
 : co compute-order ;  
-require puzzle02.fs
 
-page
+: scan-puzzle-line ( addr,l -- a,b,c)
+  over + swap 0 -rot do
+    i c@ digit? if swap 10 * + else 0 then
+  loop ;
+
+create puzzle-line 80 allot
+
+: process-puzzle
+  0 paper !  0 ribbon !
+  begin
+    puzzle-line 80 stdin read-line drop while
+    dup if
+      puzzle-line swap
+      scan-puzzle-line compute-order
+    then
+  repeat ;
+
+process-puzzle
+
+cr
 ." paper: " paper ? cr
-." rippon: " ribbon ? cr
+." ribbon: " ribbon ? cr
 bye
+
+
 
 
