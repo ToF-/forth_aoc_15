@@ -71,26 +71,36 @@ create lookup-table 256 allot
 : init-lookup
   lookup-table 256 erase ;
 
-: check-previous-double ( c,i -- n )
-  dup lookup-table + c@               \ c,i,n
-  dup 0= if                           \ c,i,n
-    drop dup                          \ c,i,i
-    lookup-table + c!                 \ c
-    drop 0                            \ 0
-  else                                \ c,i,n
-    over - nid                        \ p
+: previous-double-distance ( c,pos -- prev-pos )
+  swap lookup-table + dup c@          \ pos,addr,n
+  dup 0= if                           \ pos,addr,n
+    drop c! 0                         \ 0
+  else                                \ pos,addr,n
+    nip -                             \ pos-n
+    dup 2 < if
+
   then ;
 
 : include-doubled-pair? ( addr,l -- f )
   init-lookup
-  bl 0 do
+  bl -rot 0 do             \ b,addr
     dup i + c@             \ b,addr,c
     rot 2dup = if          \ addr,c,b
-    i check-previous-double if
-      leave
+      i previous-double-distance dup 2 >= if \ addr,c,2
+        2drop -1 swap      \ -1,addr
+        leave
+      else                 \ addr,c,p
+        1 = if             \ addr,c
+          drop bl swap     \ b,addr
+        else               \ addr,c
+          swap             \ c,addr
+        then
+      then
     else                   \ addr,c,b
-      drop [char] * -rot   \ 
-  0 ;
+      drop swap            \ c,addr
+    then
+  loop
+  drop -1 = ;
 
 page
 
@@ -145,6 +155,7 @@ t{ ." solve-it-1" cr
 t{ ." include-doubled-pair?" cr
   s" abcde" include-doubled-pair? ?false
   s" aadaa" include-doubled-pair? ?true
+  s" bbbb"  dbg include-doubled-pair? ?true
 }t
 bye
 
