@@ -66,6 +66,32 @@ next-arg file-name-size ! file-name !
   repeat drop
   fd-in close-file throw ;
   
+create lookup-table 256 allot
+
+: init-lookup
+  lookup-table 256 erase ;
+
+: check-previous-double ( c,i -- n )
+  dup lookup-table + c@               \ c,i,n
+  dup 0= if                           \ c,i,n
+    drop dup                          \ c,i,i
+    lookup-table + c!                 \ c
+    drop 0                            \ 0
+  else                                \ c,i,n
+    over - nid                        \ p
+  then ;
+
+: include-doubled-pair? ( addr,l -- f )
+  init-lookup
+  bl 0 do
+    dup i + c@             \ b,addr,c
+    rot 2dup = if          \ addr,c,b
+    i check-previous-double if
+      leave
+    else                   \ addr,c,b
+      drop [char] * -rot   \ 
+  0 ;
+
 page
 
 t{ ." include?" cr
@@ -116,5 +142,9 @@ t{ ." solve-it-1" cr
   solve-it-1 255 ?s
 }t
 
+t{ ." include-doubled-pair?" cr
+  s" abcde" include-doubled-pair? ?false
+  s" aadaa" include-doubled-pair? ?true
+}t
 bye
 
