@@ -68,40 +68,20 @@ next-arg file-name-size ! file-name !
   
 create lookup-table 256 allot
 
-: init-lookup
-  lookup-table 256 erase ;
+: 3dup ( a,b,c -- a,b,c,a,b,c )
+  >r 2dup r@ -rot r> ;
 
-: previous-double-distance ( c,pos -- prev-pos )
-  swap lookup-table + dup c@          \ pos,addr,n
-  dup 0= if                           \ pos,addr,n
-    drop c! 0                         \ 0
-  else                                \ pos,addr,n
-    nip -                             \ pos-n
-    dup 2 < if
-
-  then ;
-
-: include-doubled-pair? ( addr,l -- f )
-  init-lookup
-  bl -rot 0 do             \ b,addr
-    dup i + c@             \ b,addr,c
-    rot 2dup = if          \ addr,c,b
-      i previous-double-distance dup 2 >= if \ addr,c,2
-        2drop -1 swap      \ -1,addr
-        leave
-      else                 \ addr,c,p
-        1 = if             \ addr,c
-          drop bl swap     \ b,addr
-        else               \ addr,c
-          swap             \ c,addr
-        then
-      then
-    else                   \ addr,c,b
-      drop swap            \ c,addr
+: include-in-between-pair? ( addr,l -- f)
+  2>r 0 bl 42 2r>
+  over + swap do            \ 0,a,b
+    i c@                    \ 0,a,b,c
+    3dup nip = if
+      drop rot drop -1 -rot \ -1,a,b
+      leave    
     then
-  loop
-  drop -1 = ;
-
+    rot drop                \ 0,b,c
+  loop 2drop ;
+    
 page
 
 t{ ." include?" cr
@@ -152,10 +132,11 @@ t{ ." solve-it-1" cr
   solve-it-1 255 ?s
 }t
 
-t{ ." include-doubled-pair?" cr
-  s" abcde" include-doubled-pair? ?false
-  s" aadaa" include-doubled-pair? ?true
-  s" bbbb"  dbg include-doubled-pair? ?true
+t{ ." include-in-between-pair?" cr
+  s" abcde" include-in-between-pair? ?false
+  s" abcbe" include-in-between-pair? ?true
+  s" aadaa" include-in-between-pair? ?true
+  s" bbbb"  include-in-between-pair? ?true
 }t
 bye
 
