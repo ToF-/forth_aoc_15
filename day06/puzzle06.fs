@@ -1,3 +1,4 @@
+: run-lights
 887   9 959 629 turn-on-through  
 454 398 844 448 turn-on-through  
 539 243 559 965 turn-off-through 
@@ -298,3 +299,4 @@
 534 948 599 968 toggle-through   
 522 730 968 950 turn-on-through  
 102 229 674 529 turn-off-through 
+;

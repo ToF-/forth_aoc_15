@@ -1,5 +1,6 @@
 require ffl/tst.fs
 require day06.fs
+require puzzle06.fs
 
 page
 t{ ." turn-on" cr
@@ -58,10 +59,30 @@ t{ ." count-on" cr
   0 0 2 2 turn-off-through
   count-on 3 3 * 4 4 * + 1 - ?s
 }t
-t{ ." solve it" cr
-  init-grid
   require puzzle06.fs
-  count-on 0 ?s
+t{ ." solve it 1" cr
+  init-grid
+  run-lights
+  count-on 377891 ?s
+}t
+
+' turn-on-2 is turn-on
+' turn-off-2 is turn-off
+' toggle-2 is toggle
+
+t{ ." toggle 2" cr
+  init-grid
+  0 0 0 0 toggle-through
+  count-on 2 ?s
+  init-grid
+  0 0 999 999 toggle-through
+  count-on 2000000 ?s
+}t
+t{ ." solve it 2" cr
+  init-grid
+  run-lights
+  count-on 14110788 ?s
+  
 }t
 
 bye

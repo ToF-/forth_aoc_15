@@ -1,30 +1,43 @@
 1024 constant max-y
-1024 8 / constant max-x
+1024 constant max-x
 
 create grid max-y max-x * allot
 
 : init-grid
   grid max-y max-x * erase ;
 
-: bit-value ( b -- v )
-  1 swap lshift ;
+: offset ( x,y -- addr )
+  max-y * + grid + ;
 
-: offset ( x,y -- addr,v )
-  max-x * over 8 / + grid +
-  swap 8 mod bit-value ;
+: turn-on-1 ( x,y -- )
+  offset 1 swap c! ;
 
-: inverse ( v -- v )
-  -1 xor 255 and ;
+: turn-off-1 ( x,y -- )
+  offset 0 swap c! ;
 
-: turn-on ( x,y -- )
-  offset over c@ or swap c! ;
-
-: turn-off ( x,y -- )
-  offset inverse
-  over c@ and swap c! ;
+: toggle-1 ( x,y -- )
+  offset dup c@ 1 swap - swap c! ;
 
 : light ( x,y -- n )
-  offset swap c@ and 0 > 1 and ;
+  offset c@ ;
+
+: turn-on-2 ( x,y -- )
+  offset dup c@ 
+  dup 255 = if s" too bright" exception throw then
+  1+ swap c! ;
+
+: turn-off-2 ( x,y -- )
+  offset dup c@ 1- 0 max
+  swap c! ;
+
+: toggle-2 ( x,y -- )
+  offset dup c@
+  dup 254 = if s" too bright" exception throw then
+  2 + swap c! ;
+
+defer turn-on
+defer turn-off
+defer toggle
 
 : turn-on-through ( x0,y0,x1,y1 -- )
   1+ rot                 \ x0,x1,y1+1,y0
@@ -44,20 +57,13 @@ create grid max-y max-x * allot
   1+ rot                 \ x0,x1,y1+1,y0
   2swap 1+ swap          \ y1+1,y0,x1+1,x0
   do 2dup                \ y1+1,y0,y+1,y0
-    do j i light if
-        j i turn-off
-      else 
-        j i turn-on
-      then
-    loop
+    do j i toggle loop
   loop 2drop ;
 
 : count-on ( -- n )
-  0 
-  max-x 0 do
-    max-y 0 do
-      j i light if
-        1+
-      then
-    loop 
-  loop ;
+  0 max-x 0 do max-y 0 do j i light + loop loop ;
+
+' turn-on-1 is turn-on
+' turn-off-1 is turn-off
+' toggle-1 is toggle
+
