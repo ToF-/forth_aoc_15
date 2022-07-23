@@ -2,22 +2,22 @@
 require ffl/tst.fs
 
 : include? ( c,addr,l -- f )
-  rot 0 swap 2swap
+  rot false swap 2swap
   over + swap do
     dup i c@ = if nip i swap leave then
   loop drop ;
 
 : include-3-vowels? ( addr,l -- f)
-  0 -rot
+  false -rot
   over + swap do
     i c@ s" aeiou" include? if 1+ then
   loop 3 >= ;
 
 : cmp-first ( c1,c2,c1,c -- c2,c1,1 | c1,c2,0 )
-  = if swap 1 else 0 then ;
+  = if swap true else false then ;
 
 : include-pair? ( c1,c2,addr,l -- f )
-  0 -rot
+  false -rot
   over + swap do
     0= if over i c@ cmp-first
     else over i c@ = if 2 leave
@@ -27,10 +27,10 @@ require ffl/tst.fs
   -rot 2drop 2 = ;
 
 : include-doubled? ( addr,l -- f)
-  0 -rot 2dup
+  false -rot 2dup
   over + swap do
     i c@ dup 2over include-pair? if
-      rot drop -1 -rot leave
+      rot drop true -rot leave
     then
   loop 2drop ;
 
@@ -47,6 +47,31 @@ require ffl/tst.fs
   2dup include-doubled? -rot
   include-forbidden? 0= and and ;
 
+: pair@ ( addr -- n )
+    dup c@ swap 1+ c@ 8 lshift or ;
+
+: has-repeated-pair? ( addr,l -- f )
+  false -rot
+  1- over + swap 2dup          \ F,addr,l,addr,l
+  do                           \ F,addr,l
+    2dup                       \ F,addr,l,addr,l
+    do                         \ F,addr,l
+      i j - abs 2 >= if
+        i pair@ j pair@ = if
+          rot drop true -rot   \ T,addr,l
+        then
+      then
+    loop 
+  loop 2drop ;
+
+: has-in-between? ( addr,l -- f)
+  false -rot over 2 - + swap do
+    i dup 2 + c@ swap c@ = if drop true then
+  loop ;
+    
+: nice-2? ( addr,l -- f )
+  2dup has-repeated-pair? 
+  -rot has-in-between? and ;
 
 80 constant maxline
 create puzzle-line maxline allot
@@ -65,78 +90,12 @@ next-arg file-name-size ! file-name !
     puzzle-line swap nice-1? if 1+ then
   repeat drop
   fd-in close-file throw ;
+
+: solve-it-2
+  0 file-name @ file-name-size @ r/o open-file throw to fd-in
+  begin
+    puzzle-line maxline fd-in read-line throw while
+    puzzle-line swap nice-2? if 1+ then
+  repeat drop
+  fd-in close-file throw ;
   
-create lookup-table 256 allot
-
-: 3dup ( a,b,c -- a,b,c,a,b,c )
-  >r 2dup r@ -rot r> ;
-
-: include-in-between-pair? ( addr,l -- f)
-  2>r 0 bl 42 2r>
-  over + swap do            \ 0,a,b
-    i c@                    \ 0,a,b,c
-    3dup nip = if
-      drop rot drop -1 -rot \ -1,a,b
-      leave    
-    then
-    rot drop                \ 0,b,c
-  loop 2drop ;
-    
-page
-
-t{ ." include?" cr
-  s" pygmalion" char y -rot include? ?true
-  s" pygmalion" char z -rot include? ?false
-  s" pygmalion" char n -rot include? ?true
-}t
-t{ ." include-pair?" cr
-  s" pygmalion" char g char u 2swap include-pair? ?false
-  s" pygmalion" char g char a 2swap include-pair? ?false
-  s" pygmalion" char l char a 2swap include-pair? ?false
-  s" domino"    char o char o 2swap include-pair? ?false
-  s" pygmalion" char p char y 2swap include-pair? ?true
-  s" pygmalion" char g char m 2swap include-pair? ?true
-  s" pygmalion" char o char n 2swap include-pair? ?true
-  s" aabmnh" char a char b 2swap include-pair? ?true
-}t
-t{ ." include-3-vowels?" cr
-  s" kpvwblrizaabmnhz" include-3-vowels? ?true
-  s" pygmy" include-3-vowels? ?false
-  s" dog" include-3-vowels? ?false
-  s" pygmalion" include-3-vowels? ?true
-}t
-t{ ." include-doubled?" cr
-  s" domino" include-doubled? ?false
-  s" ardvaark" include-doubled? ?true
-  s" waterloo" include-doubled? ?true
-}t
-t{ ." include-forbidden?" cr
-  s" domino" include-forbidden? ?false
-  s" abhorrent" include-forbidden? ?true
-  s" cabdriver" include-forbidden? ?true
-  s" abcde" include-forbidden? ?true
-  s" macdonald" include-forbidden? ?true
-  s" cupqake" include-forbidden? ?true
-  s" maxymum" include-forbidden? ?true
-  s" aabmnhz" include-forbidden? ?true
-  s" kpvwblrizaabmnhz" include-forbidden? ?true
-}t
-t{ ." nice-1?" cr
-  s" ugknbfddgicrmopn" nice-1? ?true
-  s" aaa" nice-1? ?true
-  s" jchzalrnumimnmhp" nice-1? ?false
-  s" haegwjzuvuyypxyu" nice-1? ?false
-  s" dvszwmarrgswjxmb" nice-1? ?false
-}t
-t{ ." solve-it-1" cr
-  solve-it-1 255 ?s
-}t
-
-t{ ." include-in-between-pair?" cr
-  s" abcde" include-in-between-pair? ?false
-  s" abcbe" include-in-between-pair? ?true
-  s" aadaa" include-in-between-pair? ?true
-  s" bbbb"  include-in-between-pair? ?true
-}t
-bye
-
