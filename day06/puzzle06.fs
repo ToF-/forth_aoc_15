@@ -1,0 +1,300 @@
+887   9 959 629 turn-on-through  
+454 398 844 448 turn-on-through  
+539 243 559 965 turn-off-through 
+370 819 676 868 turn-off-through 
+145  40 370 997 turn-off-through 
+301   3 808 453 turn-off-through 
+351 678 951 908 turn-on-through  
+720 196 897 994 toggle-through   
+831 394 904 860 toggle-through   
+753 664 970 926 toggle-through   
+150 300 213 740 turn-off-through 
+141 242 932 871 turn-on-through  
+294 259 474 326 toggle-through   
+678 333 752 957 toggle-through   
+393 804 510 976 toggle-through   
+  6 964 411 976 turn-off-through 
+ 33 572 978 590 turn-off-through 
+579 693 650 978 turn-on-through  
+150  20 652 719 turn-on-through  
+782 143 808 802 turn-off-through 
+240 377 761 468 turn-off-through 
+899 828 958 967 turn-off-through 
+613 565 952 659 turn-on-through  
+295  36 964 978 turn-on-through  
+846 296 969 528 toggle-through   
+211 254 529 491 turn-off-through 
+231 594 406 794 turn-off-through 
+169 791 758 942 turn-off-through 
+955 440 980 477 turn-on-through  
+944 498 995 928 toggle-through   
+519 391 605 718 turn-on-through  
+521 303 617 366 toggle-through   
+524 349 694 791 turn-off-through 
+391  87 499 792 toggle-through   
+562 527 668 935 toggle-through   
+ 68 358 857 453 turn-off-through 
+815 811 889 828 toggle-through   
+666  61 768 87  turn-off-through 
+ 27 501 921 952 turn-on-through  
+953 102 983 471 turn-on-through  
+277 552 451 723 turn-on-through  
+ 64 253 655 960 turn-off-through 
+ 47 485 734 977 turn-on-through  
+ 59 119 699 734 turn-off-through 
+407 898 493 955 toggle-through   
+912 966 949 991 toggle-through   
+479 990 895 990 turn-on-through  
+390 589 869 766 toggle-through   
+593 903 926 943 toggle-through   
+358 439 870 528 toggle-through   
+649 410 652 875 turn-off-through 
+629 834 712 895 turn-on-through  
+254 555 770 901 toggle-through   
+641 832 947 850 toggle-through   
+268 448 743 777 turn-on-through  
+512 123 625 874 turn-off-through 
+498 262 930 811 turn-off-through 
+835 158 886 242 turn-off-through 
+546 310 607 773 toggle-through   
+501 505 896 909 turn-on-through  
+666 796 817 924 turn-off-through 
+987 789 993 809 toggle-through   
+745   8 860 693 toggle-through   
+181 983 731 988 toggle-through   
+826 174 924 883 turn-on-through  
+239 228 843 993 turn-on-through  
+205 613 891 667 turn-on-through  
+867 873 984 896 toggle-through   
+628 251 677 681 turn-on-through  
+276 956 631 964 toggle-through   
+ 78 358 974 713 turn-on-through  
+521 360 773 597 turn-on-through  
+963  52 979 502 turn-off-through 
+117 151 934 622 turn-on-through  
+237  91 528 164 toggle-through   
+944 269 975 453 turn-on-through  
+979 460 988 964 toggle-through   
+440 254 681 507 turn-off-through 
+347 100 896 785 toggle-through   
+329 592 369 985 turn-off-through 
+931 960 979 985 turn-on-through  
+703   3 776 36  toggle-through   
+798 120 908 550 toggle-through   
+186 605 914 709 turn-off-through 
+921 725 979 956 turn-off-through 
+167  34 735 249 toggle-through   
+726 781 987 936 turn-on-through  
+720 336 847 756 toggle-through   
+171 630 656 769 turn-on-through  
+417 276 751 500 turn-off-through 
+559 485 584 534 toggle-through   
+568 629 690 873 turn-on-through  
+248 712 277 988 toggle-through   
+345 594 812 723 toggle-through   
+800 108 834 618 turn-off-through 
+967 439 986 869 turn-off-through 
+842 209 955 529 turn-on-through  
+132 653 357 696 turn-on-through  
+817  38 973 662 turn-on-through  
+569 816 721 861 turn-off-through 
+568 429 945 724 turn-on-through  
+ 77 458 844 685 turn-on-through  
+138  78 498 851 turn-off-through 
+136  21 252 986 turn-on-through  
+  2 460 863 472 turn-off-through 
+172  81 839 332 turn-on-through  
+123 216 703 384 turn-on-through  
+879 644 944 887 turn-off-through 
+227 491 504 793 toggle-through   
+580 418 741 479 toggle-through   
+ 65 276 414 299 toggle-through   
+482 486 838 931 toggle-through   
+557 768 950 927 turn-off-through 
+615 617 955 864 turn-off-through 
+859 886 923 919 turn-on-through  
+391 330 499 971 turn-on-through  
+521 835 613 847 toggle-through   
+822 787 989 847 turn-on-through  
+192 142 357 846 turn-on-through  
+564 945 985 945 turn-off-through 
+479 361 703 799 turn-off-through 
+ 56 481 489 978 toggle-through   
+632 991 774 998 turn-off-through 
+723 526 945 792 toggle-through   
+344 149 441 640 turn-on-through  
+568 927 624 952 toggle-through   
+621 784 970 788 turn-on-through  
+665 783 795 981 toggle-through   
+386 610 817 730 toggle-through   
+440 399 734 417 toggle-through   
+939 201 978 803 toggle-through   
+395 883 554 929 turn-off-through 
+340 309 637 561 turn-on-through  
+875 147 946 481 turn-off-through 
+945 837 957 922 turn-off-through 
+429 982 691 991 turn-off-through 
+227 137 439 822 toggle-through   
+  4 848   7 932 toggle-through   
+545 146 756 943 turn-off-through 
+763 863 937 994 turn-on-through  
+232  94 404 502 turn-on-through  
+742 254 930 512 turn-off-through 
+ 91 931 101 942 turn-on-through  
+585 106 651 425 toggle-through   
+506 700 567 960 turn-on-through  
+548  44 718 352 turn-off-through 
+194 827 673 859 turn-off-through 
+  6 645 509 764 turn-off-through 
+ 13 230 821 361 turn-off-through 
+734 629 919 631 turn-on-through  
+788 552 957 972 toggle-through   
+244 747 849 773 toggle-through   
+162 553 276 887 turn-off-through 
+569 577 587 604 turn-off-through 
+799 482 854 956 turn-off-through 
+744 535 909 802 turn-on-through  
+330 641 396 986 toggle-through   
+927 458 966 564 turn-off-through 
+984 486 986 913 toggle-through   
+519 682 632 708 toggle-through   
+984 977 989 986 turn-on-through  
+766 423 934 495 toggle-through   
+ 17 509 947 718 turn-on-through  
+413 783 631 903 turn-on-through  
+482 370 493 688 turn-on-through  
+433 859 628 938 turn-on-through  
+769 549 945 810 turn-off-through 
+178 853 539 941 turn-on-through  
+203 251 692 433 turn-off-through 
+525 638 955 794 turn-off-through 
+169  70 764 939 turn-on-through  
+ 59 352 896 404 toggle-through   
+143 245 707 320 toggle-through   
+103  35 160 949 turn-off-through 
+496  24 669 507 toggle-through   
+581 847 847 903 turn-off-through 
+689 153 733 562 turn-on-through  
+821 487 839 699 turn-on-through  
+837 627 978 723 turn-on-through  
+ 96 748 973 753 toggle-through   
+ 99 818 609 995 toggle-through   
+731 193 756 509 turn-on-through  
+622  55 813 365 turn-off-through 
+456 490 576 548 turn-on-through  
+ 48 421 163 674 turn-on-through  
+853 861 924 964 turn-off-through 
+ 59 963 556 987 turn-off-through 
+458 710 688 847 turn-on-through  
+ 12 484 878 562 toggle-through   
+241 964 799 983 turn-off-through 
+434 299 845 772 turn-off-through 
+896 725 956 847 toggle-through   
+740 289 784 345 turn-on-through  
+395 840 822 845 turn-off-through 
+955 224 996 953 turn-on-through  
+710 186 957 722 turn-off-through 
+485 949 869 985 turn-off-through 
+848 209 975 376 turn-on-through  
+221 241 906 384 toggle-through   
+588  49 927 496 turn-on-through  
+273 332 735 725 turn-on-through  
+505 962 895 962 turn-on-through  
+820 112 923 143 toggle-through   
+919 792 978 982 turn-on-through  
+489 461 910 737 toggle-through   
+202 642 638 940 turn-off-through 
+708 953 970 960 turn-off-through 
+437 291 546 381 toggle-through   
+409 358 837 479 turn-on-through  
+756 279 870 943 turn-off-through 
+154 657 375 703 turn-off-through 
+524 622 995 779 turn-off-through 
+514 221 651 850 toggle-through   
+808 464 886 646 toggle-through   
+483 537 739 840 toggle-through   
+654 769 831 825 toggle-through   
+326  37 631 69  turn-off-through 
+590 570 926 656 turn-off-through 
+881 913 911 998 turn-off-through 
+996 102 998 616 turn-on-through  
+677 503 828 563 turn-off-through 
+860 251 877 441 turn-on-through  
+964 100 982 377 turn-off-through 
+888 403 961 597 toggle-through   
+632 240 938 968 turn-off-through 
+731 176 932 413 toggle-through   
+  5 498 203 835 turn-on-through  
+819 352 929 855 turn-on-through  
+393 813 832 816 toggle-through   
+725 689 967 888 toggle-through   
+968 950 969 983 turn-on-through  
+152 628 582 896 turn-off-through 
+165 844 459 935 turn-off-through 
+882 741 974 786 turn-off-through 
+283 179 731 899 turn-off-through 
+197 366 682 445 toggle-through   
+106 309 120 813 turn-on-through  
+950 387 967 782 toggle-through   
+274 603 383 759 turn-off-through 
+155 665 284 787 turn-off-through 
+551 871 860 962 toggle-through   
+ 30 826 598 892 turn-off-through 
+ 76 552 977 888 toggle-through   
+938 180 994 997 turn-on-through  
+ 62 381 993 656 toggle-through   
+625 861 921 941 toggle-through   
+685 311 872 521 turn-on-through  
+124 934 530 962 turn-on-through  
+606 379 961 867 turn-on-through  
+792 735 946 783 turn-off-through 
+417 480 860 598 turn-on-through  
+178  91 481 887 toggle-through   
+ 23 935 833 962 turn-off-through 
+317  14 793 425 toggle-through   
+986  89 999 613 turn-on-through  
+359 201 560 554 turn-off-through 
+729 494 942 626 turn-off-through 
+204 143 876 610 turn-on-through  
+474  97 636 542 toggle-through   
+902 924 976 973 turn-off-through 
+389 442 824 638 turn-off-through 
+622 863 798 863 turn-off-through 
+840 622 978 920 turn-on-through  
+567 374 925 439 toggle-through   
+643 319 935 662 turn-off-through 
+185  42 294 810 toggle-through   
+ 47 124 598 880 turn-on-through  
+828 303 979 770 toggle-through   
+174 272 280 311 turn-off-through 
+540  50 880 212 turn-off-through 
+141 994 221 998 turn-on-through  
+476 695 483 901 turn-on-through  
+960 216 972 502 turn-on-through  
+752 335 957 733 toggle-through   
+419 713 537 998 turn-off-through 
+772 846 994 888 toggle-through   
+881 159 902 312 turn-on-through  
+537 651 641 816 turn-off-through 
+561 947 638 965 toggle-through   
+368 458 437 612 turn-on-through  
+290 149 705 919 turn-on-through  
+711 918 974 945 turn-on-through  
+916 242 926 786 toggle-through   
+522 272 773 314 toggle-through   
+432 897 440 954 turn-on-through  
+132 169 775 380 turn-off-through 
+ 52 205 693 747 toggle-through   
+926 309 976 669 toggle-through   
+838 342 938 444 turn-off-through 
+144 431 260 951 turn-on-through  
+780 318 975 495 toggle-through   
+185 412 796 541 turn-off-through 
+879 548 892 860 turn-on-through  
+294 132 460 338 turn-on-through  
+823 500 899 529 turn-on-through  
+225 603 483 920 turn-off-through 
+717 493 930 875 toggle-through   
+534 948 599 968 toggle-through   
+522 730 968 950 turn-on-through  
+102 229 674 529 turn-off-through 
