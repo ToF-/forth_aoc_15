@@ -115,9 +115,6 @@ variable #tokens
   then ;
 
 
-: eval ( addr -- n )
-  tk->string s>number? drop d>s ;
-
 : .token-strings
   #tokens @ 0 do
     i token@ tk->string type cr
@@ -231,5 +228,16 @@ create steps-token 5 cells allot
   last-token dup 1- swap add-assignment-token ;
 
 
-    
-
+: get-instructions ( addr,l -- )
+  get-instruction
+  record-steps
+  reorder-steps
+  interpret-steps ;
+  
+: eval ( addr -- n )
+  dup tk->type dup TK-LIT = if drop tk->string s>number? drop d>s
+    else dup TK-ASSIGN = if drop  tk->operand1 token@ recurse
+      else TK-AND = if dup  tk->operand1 token@ recurse
+                       swap tk->operand2 token@ recurse and
+        else drop 0
+      then then then ;

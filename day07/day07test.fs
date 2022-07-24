@@ -173,4 +173,13 @@ t{ ." interpret-steps" cr
   3 token@ tk->type TK-VAR ?s
   4 token@ tk->type TK-ASSIGN ?s
 }t
+
+t{ ." eval" cr
+  init
+  s" 123 AND 456 -> x" get-instructions
+  0 token@ eval 123 ?s
+  2 token@ eval 123 456 and ?s
+  s" x" find-assignment token@ eval 72 ?s
+}t
+
 bye
