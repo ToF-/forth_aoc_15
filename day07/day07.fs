@@ -203,6 +203,32 @@ create steps-token 5 cells allot
     then
   then ;
 
+: interpret-steps
+  0 step-string 2dup token-type TK-LIT = if
+    add-lit-token
+  else
+    add-var-token
+  then
+  1 step-string token-type TK-NOT = if
+    0 TK-NOT add-unary-token
+    2 step-string add-var-token
+  else
+    1 step-string 2dup token-type TK-LIT = if
+      add-lit-token
+    else
+      add-var-token
+    then
+  then
+  #steps @ 5 = if
+      2 step-string token-type dup TK-VAR <> if
+      last-token dup 1- swap rot add-binary-token
+      3 step-string add-var-token
+    else
+      drop
+      2 step-string add-var-token
+    then
+  then
+  last-token dup 1- swap add-assignment-token ;
 
 
     

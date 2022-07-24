@@ -143,4 +143,34 @@ t{ ." reorder-steps" cr
   3 step-string s" x" ?str
   4 step-string s" ->" ?str
 }t
+t{ ." interpret-steps" cr
+  init
+  s" 123 -> x" get-instruction record-steps reorder-steps interpret-steps
+  #tokens @ 3 ?s
+  0 token@ tk->type TK-LIT ?s
+  1 token@ tk->type TK-VAR ?s
+  2 token@ tk->type TK-ASSIGN ?s
+  init
+  s" NOT 123 -> x" get-instruction record-steps reorder-steps interpret-steps
+  #tokens @ 4 ?s
+  0 token@ tk->type TK-LIT ?s
+  1 token@ tk->type TK-NOT ?s
+  2 token@ tk->type TK-VAR ?s
+  3 token@ tk->type TK-ASSIGN ?s
+  init
+  s" FOO -> x" get-instruction record-steps reorder-steps interpret-steps
+  #tokens @ 3 ?s
+  0 token@ tk->type TK-VAR ?s
+  0 token@ tk->string s" FOO" ?str
+  1 token@ tk->type TK-VAR ?s
+  2 token@ tk->type TK-ASSIGN ?s
+  init
+  s" 123 AND 456 -> x" get-instruction record-steps reorder-steps interpret-steps
+  #tokens @ 5 ?s
+  0 token@ tk->type TK-LIT ?s
+  1 token@ tk->type TK-LIT ?s
+  2 token@ tk->type TK-AND ?s
+  3 token@ tk->type TK-VAR ?s
+  4 token@ tk->type TK-ASSIGN ?s
+}t
 bye
