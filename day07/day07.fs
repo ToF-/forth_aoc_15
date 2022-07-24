@@ -67,36 +67,37 @@ variable #tokens
   #tokens @ token@ !
   1 #tokens +! ;
 
-: add-lit-token ( addr,l -- )
+: add-lit-token ( addr,l -- t )
   add-token-string
   TK-LIT 48 lshift
-  add-token ;
+  add-token last-token ;
 
-: add-var-token ( addr,l -- )
+: add-var-token ( addr,l -- t )
   2dup find-token 0= if
     add-token-string
     TK-VAR 48 lshift
     add-token 
+    last-token
   else
-    drop 2drop
+    -rot 2drop
   then ;
 
-: add-unary-token ( t,op -- )
-  s" (un)" add-token-string
-  48 lshift or add-token ;
+: add-unary-token ( t,op -- t )
+  s" " add-token-string
+  48 lshift or add-token last-token ;
 
-: add-binary-token ( t,u,op -- )
-  s" (bin)" add-token-string
+: add-binary-token ( t,u,op -- t )
+  s" " add-token-string
   -rot 
   16 lshift or
   swap 48 lshift or 
-  add-token ;
+  add-token last-token ;
 
-: add-assignment-token ( t,u -- )
-  s" (->)" add-token-string
+: add-assignment-token ( t,u -- t )
+  s" " add-token-string
   16 lshift or
   TK-ASSIGN 48 lshift or
-  add-token ;
+  add-token last-token ;
 
 : find-assignment  ( addr,l -- n,T|F )
   find-token if
@@ -115,9 +116,24 @@ variable #tokens
   then ;
 
 
-: .token-strings
+: .token-type ( t -- )
+  dup TK-NOOP = if drop ." NOOP" else
+    dup TK-LIT = if drop ." LIT" else
+      dup TK-VAR = if drop ." VAR" else
+        dup TK-NOT = if drop ." NOT" else
+          dup TK-AND = if drop ." AND" else
+            dup TK-OR = if drop ." OR" else
+              dup TK-LSHIFT = if drop ." LSHIFT" else
+                dup TK-RSHIFT = if drop ." RSHIFT" else
+                  dup TK-ASSIGN = if drop ." ->" else
+                    drop then then then then then then then then then ;
+: .token ( addr -- )
+  dup tk->type .token-type space dup tk->string type space
+  dup tk->operand1 . tk->operand2 . ;
+  
+: .tokens
   #tokens @ 0 do
-    i token@ tk->string type cr
+    i dup . token@ .token cr
   loop ;
 
 create instruction-buffer 80 allot
@@ -200,33 +216,48 @@ create steps-token 5 cells allot
     then
   then ;
 
+create step-tokens 5 cells allot
+: step-token ( n -- addr )
+  cells step-tokens + ;
+
+: is-binary-token ( t -- f )
+  dup TK-AND = 
+  swap dup TK-OR =
+  swap dup TK-LSHIFT =
+  swap TK-RSHIFT =
+  or or or ;
+
 : interpret-steps
   0 step-string 2dup token-type TK-LIT = if
-    add-lit-token
+    add-lit-token 0 step-token ! 
   else
-    add-var-token
+    add-var-token 0 step-token !
   then
   1 step-string token-type TK-NOT = if
-    0 TK-NOT add-unary-token
-    2 step-string add-var-token
+    0 TK-NOT add-unary-token 1 step-token !
+    2 step-string add-var-token 0 step-token !
   else
     1 step-string 2dup token-type TK-LIT = if
-      add-lit-token
+      add-lit-token 1 step-token !
     else
-      add-var-token
+      add-var-token 1 step-token !
     then
   then
   #steps @ 5 = if
-      2 step-string token-type dup TK-VAR <> if
-      last-token dup 1- swap rot add-binary-token
-      3 step-string add-var-token
+      2 step-string token-type dup is-binary-token if
+        0 step-token @ 
+        1 step-token @ 
+        rot add-binary-token 2 step-token !
+        3 step-string add-var-token 3 step-token !
     else
       drop
-      2 step-string add-var-token
+      2 step-string add-var-token 2 step-token !
     then
   then
-  last-token dup 1- swap add-assignment-token ;
-
+  #steps @ 3 - step-token @ 
+  #steps @ 2 - step-token @ 
+  add-assignment-token 
+  #steps @ 1- step-token ! ;
 
 : get-instructions ( addr,l -- )
   get-instruction
@@ -234,10 +265,14 @@ create steps-token 5 cells allot
   reorder-steps
   interpret-steps ;
   
+
 : eval ( addr -- n )
   dup tk->type dup TK-LIT = if drop tk->string s>number? drop d>s
+    else dup TK-VAR = if drop tk->string find-assignment if
+      token@ recurse
+      else s" unassigned variable" exception throw then
     else dup TK-ASSIGN = if drop  tk->operand1 token@ recurse
       else TK-AND = if dup  tk->operand1 token@ recurse
                        swap tk->operand2 token@ recurse and
         else drop 0
-      then then then ;
+      then then then then ;

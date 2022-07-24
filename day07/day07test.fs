@@ -11,7 +11,7 @@ t{ ." add-string" cr
 
 t{ ." add-lit-token" cr
   init #tokens @ 0 ?s
-  s" 123" add-lit-token
+  s" 123" add-lit-token drop
   #tokens @ 1 ?s
   0 token@
   dup tk->type TK-LIT ?s
@@ -21,7 +21,7 @@ t{ ." add-lit-token" cr
 
 t{ ." add-var-token, new var" cr
   init
-  s" foo" add-var-token
+  s" foo" add-var-token drop
   0 token@ dup tk->type TK-VAR ?s
   dup tk->string s" foo" ?str
   tk->type TK-VAR ?s
@@ -29,22 +29,22 @@ t{ ." add-var-token, new var" cr
 
 t{ ." find-token" cr
   init
-  s" foo" add-var-token
+  s" foo" add-var-token drop
   s" foo" find-token ?true 0 ?s
 }t
 
 t{ ." add-var-token, already added var" cr
   init
-  s" foo" add-var-token
-  s" bar" add-var-token
-  s" foo" add-var-token
+  s" foo" add-var-token drop
+  s" bar" add-var-token drop
+  s" foo" add-var-token drop
   #tokens @ 2 ?s
 }t
 
 t{ ." add-unary-token" cr
   init
-  s" 123" add-lit-token
-  s" 123" find-token drop TK-NOT add-unary-token
+  s" 123" add-lit-token drop
+  s" 123" find-token drop TK-NOT add-unary-token drop
   #tokens @ 2 ?s
   1 token@ dup tk->type TK-NOT ?s
   tk->operand1 0 ?s
@@ -52,11 +52,11 @@ t{ ." add-unary-token" cr
 
 t{ ." add-binary-token" cr
   init
-  s" 123" add-lit-token
-  s" 456" add-lit-token
+  s" 123" add-lit-token drop
+  s" 456" add-lit-token drop
   s" 123" find-token drop
   s" 456" find-token drop
-  TK-AND add-binary-token
+  TK-AND add-binary-token drop
   #tokens @ 3 ?s
   2 token@ dup tk->type TK-AND ?s
   dup tk->operand1 0 ?s
@@ -65,11 +65,11 @@ t{ ." add-binary-token" cr
 
 t{ ." add-assignment-token" cr
   init
-  s" 123" add-lit-token
-  s" 456" add-lit-token
-  s" 123" find-token drop TK-NOT add-unary-token
-  last-token s" 456" find-token drop TK-AND add-binary-token
-  last-token s" foo" add-var-token last-token add-assignment-token
+  s" 123" add-lit-token drop
+  s" 456" add-lit-token drop
+  s" 123" find-token drop TK-NOT add-unary-token drop
+  last-token s" 456" find-token drop TK-AND add-binary-token drop
+  last-token s" foo" add-var-token drop last-token add-assignment-token drop
   last-token token@ dup tk->type TK-ASSIGN ?s
   dup tk->operand1 3 ?s
   tk->operand2 4 ?s
@@ -78,11 +78,11 @@ t{ ." add-assignment-token" cr
 t{ ." find-assignemt" cr
   init
   s" foo" find-assignment ?false
-  s" 123" add-lit-token
-  s" 456" add-lit-token
-  s" 123" find-token drop TK-NOT add-unary-token
-  last-token s" 456" find-token drop TK-AND add-binary-token
-  last-token s" foo" add-var-token last-token add-assignment-token
+  s" 123" add-lit-token drop
+  s" 456" add-lit-token drop
+  s" 123" find-token drop TK-NOT add-unary-token drop
+  last-token s" 456" find-token drop TK-AND add-binary-token drop
+  last-token s" foo" add-var-token drop last-token add-assignment-token drop
   s" foo" find-assignment ?true last-token ?s
 }t
 
@@ -179,7 +179,36 @@ t{ ." eval" cr
   s" 123 AND 456 -> x" get-instructions
   0 token@ eval 123 ?s
   2 token@ eval 123 456 and ?s
-  s" x" find-assignment token@ eval 72 ?s
+  s" x" find-assignment drop token@ eval 72 ?s
+  init
+  s" 123 -> x" get-instructions
+  s" x AND 456 -> y" get-instructions
+  s" y" find-assignment drop token@ eval 72 ?s
+  init
+  s" 123 -> x" get-instructions
+  s" 456 -> y" get-instructions
+  s" x AND y -> z" get-instructions
+  #tokens @ 9 ?s
+  8 token@ eval 72 ?s
 }t
-
+t{ ." example" cr
+  init
+  s" 123 -> x" get-instructions
+  s" 456 -> y" get-instructions
+  s" x AND y -> d" get-instructions
+  s" x OR y -> e" get-instructions
+  s" x LSHIFT 2 -> f" get-instructions
+  s" y RSHIFT 2 -> g" get-instructions
+  s" NOT x -> h" get-instructions
+  s" NOT y -> i" get-instructions
+  .tokens
+  s" d" find-assignment drop token@ eval 72 ?s
+  s" e" find-assignment drop token@ eval 507 ?s
+  s" f" find-assignment drop token@ eval 492 ?s
+  s" g" find-assignment drop token@ eval 114 ?s
+  s" h" find-assignment drop token@ eval 65412 ?s
+  s" i" find-assignment drop token@ eval 65079 ?s
+  s" x" find-assignment drop token@ eval 123 ?s
+  s" y" find-assignment drop token@ eval 456 ?s
+}t
 bye
