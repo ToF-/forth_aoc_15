@@ -85,4 +85,62 @@ t{ ." find-assignemt" cr
   last-token s" foo" add-var-token last-token add-assignment-token
   s" foo" find-assignment ?true last-token ?s
 }t
+
+t{ ." get-instruction" cr
+  s" x LSHIFT 2 -> g" get-instruction
+  next-step s" x" compare 0= ?true
+  next-step s" LSHIFT" compare 0= ?true
+  next-step s" 2" compare 0= ?true
+  next-step s" ->" compare 0= ?true
+  next-step s" g" compare 0= ?true
+  next-step s" " compare 0= ?true
+}t
+
+t{ ." token-type"  cr
+  s" 123" token-type TK-LIT ?s
+  s" foo" token-type TK-VAR ?s
+  s" NOT" token-type TK-NOT ?s
+  s" AND" token-type TK-AND ?s
+  s" OR" token-type TK-OR ?s
+  s" LSHIFT" token-type TK-LSHIFT ?s
+  s" RSHIFT" token-type TK-RSHIFT ?s
+  s" ->" token-type TK-ASSIGN ?s
+}t
+
+t{ ." record-steps" cr
+  s" 123 -> x" get-instruction 
+  record-steps
+  #steps @ 3 ?s
+  0 step-string s" 123" ?str
+  1 step-string s" ->" ?str
+  2 step-string s" x" ?str
+  s" foo AND bar -> qux" get-instruction
+  record-steps
+  #steps @ 5 ?s
+  0 step-string s" foo" ?str
+  1 step-string s" AND" ?str
+  2 step-string s" bar" ?str
+  3 step-string s" ->" ?str
+  4 step-string s" qux" ?str
+}t
+
+t{ ." reorder-steps" cr
+  s" 123 -> x" get-instruction record-steps reorder-steps
+  0 step-string s" 123" ?str
+  1 step-string s" x" ?str
+  2 step-string s" ->" ?str
+
+  s" NOT 123 -> x" get-instruction record-steps reorder-steps
+  0 step-string s" 123" ?str
+  1 step-string s" NOT" ?str
+  2 step-string s" x" ?str
+  3 step-string s" ->" ?str
+
+  s" 123 AND foo -> x" get-instruction record-steps reorder-steps
+  0 step-string s" 123" ?str
+  1 step-string s" foo" ?str
+  2 step-string s" AND" ?str
+  3 step-string s" x" ?str
+  4 step-string s" ->" ?str
+}t
 bye
