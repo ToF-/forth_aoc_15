@@ -96,7 +96,8 @@ op-not : eval operand1, not that
 op-and,op-or,op-ls,op-rs : eval operand1, eval operand2, operation
 
 eval-output (s -- n )
-look for var token with operand1 = string index of a string == s, returning ti
+look for string index for string = s, 
+look for var token with string index of a string == s, returning ti
 look for an op-assign token with operand2 = ti and eval this token
 then eval token ti
 

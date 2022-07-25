@@ -84,7 +84,12 @@ t{ ." instruction" cr
   .tokens
   swap-operators
   .tokens
-  chain-operators
+  chain-tokens
   .tokens
 }t
+
+t{ ." eval-output" cr
+  s" x" dbg eval-output 123 ?s
+}t
+  
 bye

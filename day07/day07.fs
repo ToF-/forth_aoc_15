@@ -176,16 +176,52 @@ variable entry@
     then
   +loop ;
 
-: chain-operators
+
+: chain-tokens
   token-max @ 0 do
     i nth-token dup tk-type TK-NOT = if
       i 1- or i nth-token-ref !
+    else dup tk-type TK-VAR = if
+      dup tk-string string-index or 
+      i nth-token-ref !
     else dup tk-type 3 > IF
       i 2 - or
       i 1 - opd2-offset lshift or
       i nth-token-ref ! 
-    then then
+      i nth-token dup tk-type TK-ASSIGN = if
+        dup tk-operand2 nth-token tk-string string-index
+        opd2-offset lshift
+        swap tk-operand1 or
+        TK-ASSIGN type-offset lshift or
+        i nth-token-ref !
+      else
+        drop
+      then
+    then then then
   loop ;
+
+: find-assign ( si -- ti )
+  false swap token-max @ 0 do
+    i nth-token dup tk-type TK-ASSIGN = >r
+    tk-operand2 over = r> and if
+      nip i true rot leave
+    then
+  loop drop ;
+       
+: eval ( t -- n )
+  dup tk-type LIT = if tk-operand1
+  else dup tk-type VAR = if
+    tk-operand1 
+: eval-output ( addr,l -- n )
+  find-string-index if
+    find-assign if  
+      nth-token eval
+    else
+      s" unassigned variable" exception throw
+    then
+  else
+    s" unknown variable" exception throw
+  then ;
 
 : .tk-type ( tt -- )
   dup TK-LIT = if drop ." LIT"
@@ -213,3 +249,5 @@ variable entry@
   token-max @ 0 do
     i . i nth-token .token 
   loop cr ;
+
+
