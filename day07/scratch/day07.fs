@@ -1,206 +1,152 @@
+ variable debug 
+ debug off
+ 0 constant TK-NOOP
+ 1 constant TK-LIT
+ 2 constant TK-VAR
+ 3 constant TK-NOT
+ 4 constant TK-AND
+ 5 constant TK-OR
+ 6 constant TK-LSHIFT
+ 7 constant TK-RSHIFT
+ 8 constant TK-ASSIGN
 
-0 constant NULL-OP
-1 constant LITT-OP
-2 constant VAR-OP
-3 constant NOT-OP
-4 constant AND-OP
-5 constant OR-OP
-6 constant LS-OP
-7 constant RS-OP
-8 constant ARROW-OP
+1000 constant max-strings
+create strings max-strings 10 * allot
+variable next-string
 
-65535 constant 16bits-mask
-
-1000 constant max-tokens
+1000 constant max-token
+2 cells constant token-size
+create tokens max-token token-size * allot
 variable #tokens
 
-2 cells constant token-size
-create tokens max-tokens token-size * allot
-0 #tokens !
-
-create terms max-tokens cells allot
-variable #terms
-0 #terms !
-
-create term-strings max-tokens cells 10 * allot
-variable current-string
-term-strings current-string !
-
+65535 constant operand-mask
 : init
-  #tokens off
-  #terms off
-  term-strings current-string ! ;
+  #tokens off 
+  strings next-string ! ;
 
-: last-token# ( -- n )
+: add-string ( addr,l -- )
+  next-string @                    \ addr,l
+  over over c!                     \ addr,l,ns@
+  dup 2swap rot                    \ ns@,addr,l,ns@
+  1+ swap cmove                    \ ns@
+  dup c@ + 1+ next-string ! ;
+
+: token@ ( n -- addr )
+  token-size * tokens + ;
+
+: last-token ( n )
   #tokens @ 1- ;
 
-: add-token ( addr,t -- )
-  tokens #tokens @ token-size * + 
-  swap over !
-  cell+ !
+: tk->type ( addr -- type )
+  @ 48 rshift ;
+
+: tk->string ( addr -- addr,l )
+  cell+ @ count ;
+
+: tk->string ( addr -- addr,l )
+  cell+ @ count ;
+
+: tk->operand1 ( addr -- n )
+  @ operand-mask and ;
+
+: tk->operand2 ( addr -- n )
+  @ 16 rshift operand-mask and ;
+
+: find-token ( addr,l -- n,T|0 )
+  false -rot
+  #tokens @ 0 ?do
+    2dup i token@ tk->string compare 0= if
+      rot drop i true 2swap leave
+    then
+  loop 2drop ;
+    
+: add-token-string ( addr,l -- )
+  next-string @ -rot
+  add-string 
+  #tokens @ token@ cell+ ! ;
+  
+: add-token ( t -- )
+  #tokens @ token@ !
   1 #tokens +! ;
 
-: >>op-kind ( v -- op )
-  32 rshift ;
+: add-lit-token ( addr,l -- t )
+  add-token-string
+  TK-LIT 48 lshift
+  add-token last-token ;
 
-: <<op-kind ( op -- v )
-  32 lshift ;
-
-: operand1 ( v -- opd )
-  16bits-mask and ;
-
-: operand2 ( v -- opd )
-  16 rshift 16bits-mask and ;
-
-: token ( opd -- v )
-  token-size * tokens + @ ;
-
-: make-binany-op ( t1,t2,op -- )
-  <<op-kind
-  swap 16 lshift
-  or or add-token ;
-
-: make-unary-op ( t,op -- )
-  <<op-kind or add-token ; 
-
-: make-variable ( t -- )
-  VAR-OP <<op-kind or add-token ;
-
-: make-constant ( t -- )
-  LITT-OP <<op-kind or add-token ;
-
-: eval-litt ( v -- n )
-  16bits-mask and ;
-
-: eval-var  ( v -- n )
-  16bits-mask and cells tokens + @ ;
-  
-: not ( n -- n )
-  -1 xor 16bits-mask and ;
-
-: eval-token ( v -- )
-  dup >>op-kind
-  dup LITT-OP = if
-    drop 16bits-mask and 
-  else 
-    dup VAR-OP = if
-      drop operand1 token recurse
-    else
-      dup NOT-OP = if
-        drop operand1 token recurse not
-      else 
-        swap
-        dup operand1 token recurse
-        swap operand2 token recurse
-        rot dup AND-OP = if
-          drop and
-        else 
-          dup OR-OP = if
-            drop or
-          else
-            dup LS-OP = if
-              drop lshift
-            else
-              dup RS-OP = if
-                drop rshift
-              else 
-                s" unknown operator" exception throw
-              then
-            then
-          then
-        then
-      then
-    then
-  then ;
-
-: advance-current-string
-  current-string @ count +
-  current-string ! ;
-
-: new-term-string
-  current-string @ 
-  terms #terms @ cells + !
-  1 #terms +! ;
-
-: add-term-string ( addr,l -- )
-  dup -rot 
-  current-string @ 1+ swap
-  cmove 
-  current-string @ c!
-  new-term-string
-  advance-current-string ;
-
-: find-term ( addr,l -- n,T|F )
-  2>r
-  0 term-strings
-  begin
-    dup current-string @ < 
-    over count 2r@ compare and while
-      count +
-      swap 1+ swap
-  repeat
-  2r> 2drop
-  current-string @ < if
-    true
-  else
-    drop false
-  then ;
-  
-: find-operator ( addr,l -- op )
-  2dup s" NOT" compare 0= if
-    NOT-OP
-  else
-    2dup s" AND" compare 0= if
-      AND-OP
-    else
-      2dup s" OR" compare 0= if
-        OR-OP
-      else
-        2dup s" LSHIFT" compare 0= if
-          LS-OP
-        else
-          2dup s" RSHIFT" compare 0= if
-            RS-OP
-          else
-            2dup s" ->" compare 0= if
-              ARROW-OP
-            else
-              NULL-OP
-            then
-          then
-        then
-      then
-    then
-  then -rot 2drop ;
-
-: assign-variable ( t,addr,l -- )
-  2dup find-term if s" already assigned" exception throw then
-  add-term-string
-  make-variable ;
-
-: find-value ( addr,l -- t )
-  2dup find-term 0= if
-    2dup s>number? if
-      d>s make-constant
-      add-term-string
-      last-token#
-    then
+: add-var-token ( addr,l -- t )
+  2dup find-token 0= if
+    add-token-string
+    TK-VAR 48 lshift
+    add-token 
+    last-token
   else
     -rot 2drop
   then ;
 
-: find-variable ( addr,l -- t )
-  2dup find-term 0= if
-    0 make-variable
-    add-term-string
-    last-token#
+: add-unary-token ( t,op -- t )
+  s" " add-token-string
+  48 lshift or add-token last-token ;
+
+: add-binary-token ( t,u,op -- t )
+  s" " add-token-string
+  -rot 
+  16 lshift or
+  swap 48 lshift or 
+  add-token last-token ;
+
+: add-assignment-token ( t,u -- t )
+  s" " add-token-string
+  16 lshift or
+  TK-ASSIGN 48 lshift or
+  add-token last-token ;
+
+: find-assignment  ( addr,l -- n,T|F )
+  find-token if
+    false swap
+    #tokens @ 0 do
+      dup i token@ 
+      dup tk->type TK-ASSIGN = 
+      swap tk->operand2 rot = 
+      and if
+        nip
+        i true rot leave
+      then
+    loop drop
   else
-    -rot 2drop
+    false
+  then ;
+
+
+: .token-type ( t -- )
+  dup TK-NOOP = if drop ." NOOP" else
+    dup TK-LIT = if drop ." LIT" else
+      dup TK-VAR = if drop ." VAR" else
+        dup TK-NOT = if drop ." NOT" else
+          dup TK-AND = if drop ." AND" else
+            dup TK-OR = if drop ." OR" else
+              dup TK-LSHIFT = if drop ." LSHIFT" else
+                dup TK-RSHIFT = if drop ." RSHIFT" else
+                  dup TK-ASSIGN = if drop ." ->" else
+                    drop then then then then then then then then then ;
+: .token ( addr -- )
+  dup tk->type .token-type space dup tk->string type space
+  dup tk->operand1 . tk->operand2 . ;
+  
+: .tokens
+  debug @ if
+    #tokens @ 0 do
+      i dup . token@ .token cr
+    loop
   then ;
 
 create instruction-buffer 80 allot
 variable step@
 create step-buffer 80 allot
+create steps-strings 5 cells 2* allot
+variable #steps
+create steps-token 5 cells allot
+2variable temp-step
 
 : get-instruction ( addr,l -- )
   dup -rot
@@ -227,19 +173,138 @@ create step-buffer 80 allot
   dup non-space-length 
   2dup + step@ ! ;
 
-: interpret-instruction
-  next-step s" NOT" compare 0= if
-    next-step 
-    2dup s>number? if
-      d>s drop find-value
-    else
-      find-variable
-    then
-    NOT-OP make-unary-op 
-    last-token#
-    next-step find-operator ARROW-OP = if
-      next-step assign-variable
-    else
-      s" expecting ->" exception throw
+: token-type ( addr,l -- t )
+  2dup s>number? -rot 2drop if TK-LIT 
+  else 2dup s" NOT" compare 0= if TK-NOT
+    else 2dup s" AND" compare 0= if TK-AND
+      else 2dup s" OR" compare 0= if TK-OR
+        else 2dup s" LSHIFT" compare 0= if TK-LSHIFT
+          else 2dup s" RSHIFT" compare 0= if TK-RSHIFT
+            else 2dup s" ->" compare 0= if TK-ASSIGN
+            else TK-VAR
+    then then then then then then then -rot 2drop ;
+
+: step-string# ( n -- addr )
+  2* cells steps-strings + ;
+
+: step-string ( n -- addr,l )
+  step-string# 2@ ;
+
+: record-steps
+  #steps off
+  begin
+    next-step dup while
+    steps-strings #steps @ 2* cells + 2!
+    1 #steps +!
+  repeat 2drop ;
+
+: reverse-steps ( n,m -- )
+  2>r 2r@ step-string rot step-string
+  2r> swap >r step-string# 2! r> step-string# 2! ;
+
+: reorder-assignment
+  #steps @ 1- dup 1- reverse-steps ;
+
+: reorder-steps
+  reorder-assignment 
+  0 step-string token-type TK-NOT = if
+    1 0 reverse-steps 
+  else
+    1 step-string token-type 
+    dup TK-AND =
+    swap dup TK-OR = 
+    swap dup TK-LSHIFT =
+    swap TK-RSHIFT =
+    or or or if
+      2 1 reverse-steps
     then
   then ;
+
+create step-tokens 5 cells allot
+: step-token ( n -- addr )
+  cells step-tokens + ;
+
+: is-binary-token ( t -- f )
+  dup TK-AND = 
+  swap dup TK-OR =
+  swap dup TK-LSHIFT =
+  swap TK-RSHIFT =
+  or or or ;
+
+: interpret-steps
+  0 step-string 2dup token-type TK-LIT = if
+    add-lit-token 0 step-token ! 
+  else
+    add-var-token 0 step-token !
+  then
+  1 step-string token-type TK-NOT = if
+    0 TK-NOT add-unary-token 1 step-token !
+  else
+    1 step-string 2dup token-type TK-LIT = if
+      add-lit-token 1 step-token !
+    else
+      add-var-token 1 step-token !
+    then
+  then
+  debug @ if ." assignment, steps:" #steps ? cr then
+  #steps @ 5 = if
+      2 step-string token-type dup is-binary-token if
+        0 step-token @ 
+        1 step-token @ 
+        rot add-binary-token 2 step-token !
+        3 step-string add-var-token 3 step-token !
+      else
+        drop
+        2 step-string add-var-token 2 step-token !
+      then
+    else #steps @ 4 = if
+      2 step-string add-var-token 2 step-token !
+      3 step-string add-var-token 3 step-token ! 
+    then
+  then
+  debug @ if ." steps: " #steps ? cr then
+  debug @ if ." assignement:" #steps @ 3 - . #steps @ 2 - . cr then
+  #steps @ 3 - step-token @ 
+  #steps @ 2 - step-token @ 
+  add-assignment-token 
+  #steps @ 1- step-token ! 
+  debug @ if
+    #steps @ 0 do
+      i step-token @ token@ .token cr
+    loop cr
+  then ;
+
+: .step-strings 
+  #steps @ 0 do
+    i step-string type space
+  loop cr ;
+
+: get-instructions ( addr,l -- )
+  get-instruction
+  record-steps
+  reorder-steps
+  debug @ if .step-strings then
+  interpret-steps ;
+  
+
+: execute-binary ( n,m,tt -- v )
+  dup TK-AND = if drop and
+    else dup TK-OR = if drop or
+      else dup TK-LSHIFT = if drop lshift
+        else TK-RSHIFT = if rshift
+          else s" unknow tk-type" exception throw
+            then then then then ;
+
+: eval ( addr -- n )
+  dup tk->type dup TK-LIT = if drop tk->string s>number? drop d>s
+    else dup TK-VAR = if drop tk->string find-assignment if
+      token@ recurse
+      else s" unassigned variable" exception throw then
+    else dup TK-ASSIGN = if drop  tk->operand1 token@ recurse
+      else dup is-binary-token if 
+          swap 
+          dup  tk->operand1 token@ recurse
+          swap tk->operand2 token@ recurse 
+          rot execute-binary
+        else 2drop 0
+      then then then then ;
