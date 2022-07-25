@@ -44,6 +44,23 @@ var(y)	op-NOT	var(i)  op-assign
 
 the one and only rule of reordering is : reverse any operator (including op-assign) with its successor 
 
+tokens have a type, a string index of their representation and two operands
+for a lit, operand 1 is the integer value
+for a var, operand 1 is the string index of the var, operand 2 is the token index of the assigned value of 65535 if unassigned
+for a not, operand 1 is the token index of the operand of the node
+for a binary operator (including op-assign) operand 1 and operand 2 are the value token and the variable token to which it's assigned to
+
+receive all the raw tokens, setting their type
+
+scan the tokens and swap every token that is an operator with its successor
+scan the tokens 
+* for each NOT token set its operand 1 as the index of previous token
+* for each binary operator token set its operand1 as the index of the second previous token, and operand2 as the index of the previous token
+
+
+
+
+
 
 
 lit ( s -- ti )

@@ -11,11 +11,80 @@ t{ ." strings" cr
   1 nth-string s" bar" ?str
 }t
 
-t{ ." token" cr
-  4807 42 2 make-token
-  dup tk-type 2 ?s
-  dup tk-operand1 4807 ?s
-      tk-operand2 42 ?s
+t{ ." raw-token" cr
+  init
+  s" FOO" raw-token
+  dup tk-type TK-NOOP ?s
+  dup tk-string s" FOO" ?str
+  dup tk-operand1 0 ?s
+      tk-operand2 0 ?s
 }t
 
+t{ ." set-tk-type : LIT " cr
+  s" 4807" raw-token set-tk-type
+  dup tk-type TK-LIT ?s
+      tk-operand1 4807 ?s
+}t
+
+t{ ." set-tk-type : VAR " cr
+  s" foo" raw-token set-tk-type
+  dup tk-type TK-VAR ?s
+      tk-assigned? ?false
+}t
+
+t{ ." set-tk-type : NOT " cr
+  s" NOT" raw-token set-tk-type
+  tk-type TK-NOT ?s
+}t
+
+t{ ." set-tk-type : -> " cr
+  s" ->" raw-token set-tk-type
+  tk-type TK-ASSIGN ?s
+}t
+
+t{ ." set-tk-type : AND " cr
+  s" AND" raw-token set-tk-type
+  tk-type TK-AND ?s
+}t
+
+t{ ." set-tk-type : OR " cr
+  s" OR" raw-token set-tk-type
+  tk-type TK-OR ?s
+}t
+
+t{ ." set-tk-type : LSHIFT " cr
+  s" LSHIFT" raw-token set-tk-type
+  tk-type TK-LSHIFT ?s
+}t
+
+t{ ." set-tk-type : RSHIFT " cr
+  s" RSHIFT" raw-token set-tk-type
+  tk-type TK-RSHIFT ?s
+}t
+
+t{ ." next-entry" cr
+  s"   foo bar    qux-baz" entry swap cmove
+  entry entry@ !
+  next-entry step count s" foo" ?str
+  next-entry step count s" bar" ?str
+  next-entry step count s" qux-baz" ?str
+  next-entry step count 0 ?s drop 
+}t
+
+t{ ." instruction" cr
+  init
+  s" 123 -> x" instruction drop
+  s" 456 -> y" instruction drop
+  s" x AND y -> d" instruction drop
+  s" x OR y -> e" instruction drop
+  s" x LSHIFT 2 -> f" instruction drop
+  s" y RSHIFT 2 -> g" instruction drop
+  s" NOT x -> h" instruction drop
+  s" NOT y -> i" instruction drop
+  .tokens
+  swap-operators
+  .tokens
+  chain-operators
+  .tokens
+}t
 bye
