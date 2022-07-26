@@ -81,15 +81,28 @@ t{ ." instruction" cr
   s" y RSHIFT 2 -> g" instruction drop
   s" NOT x -> h" instruction drop
   s" NOT y -> i" instruction drop
-  .tokens
   swap-operators
-  .tokens
   chain-tokens
   .tokens
+  s" h" string-index 15 ?s
+  15 find-assign ?true 29 ?s
 }t
 
-t{ ." eval-output" cr
-  s" x" dbg eval-output 123 ?s
+t{ ." eval" cr
+  s" h" eval-output 65412 ?s
+  s" d" eval-output 72 ?s
+  s" e" eval-output 507 ?s
+  s" f" eval-output 492 ?s
+  s" g" eval-output 114 ?s
+  s" h" eval-output 65412 ?s
+  s" i" eval-output 65079 ?s
+  s" x" eval-output 123 ?s
+  s" y" eval-output 456 ?s
 }t
-  
+
+t{ ." solve-it-1" cr
+  solve-it-1
+  0 ?s
+}t
+
 bye

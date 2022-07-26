@@ -9,7 +9,7 @@
 19 constant TK-LSHIFT
 20 constant TK-RSHIFT
 
-1000 constant max-tokens
+10000 constant max-tokens
 
 create strings max-tokens cells allot
 create string-data max-tokens 10 * allot
@@ -20,10 +20,13 @@ variable next-string
 create tokens max-tokens cells allot
 variable token-max 
 
+variable assignments
+
 : init
   max-strings off
   string-data next-string !
-  token-max off ;
+  token-max off
+  assignments off ;
 
 : nth-string-ref ( si -- addr )
   cells strings + ;
@@ -70,6 +73,9 @@ variable token-max
 32 constant string-offset
 16 constant opd2-offset
 
+: not ( n -- n )
+  -1 xor operand-mask and ;
+
 : raw-token ( addr,l - t )
   string-index string-offset lshift ;
 
@@ -81,10 +87,11 @@ variable token-max
 : tk-type ( t -- type )
   type-offset rshift ;
 
+: tk-string-index ( t - si )
+  string-offset rshift operand-mask and ;
+
 : tk-string ( t -- addr,l )
-  string-offset rshift operand-mask and
-  nth-string ;
-  
+  tk-string-index nth-string ;
 
 : tk-operand1 ( t -- opd )
   operand-mask and ;
@@ -131,8 +138,9 @@ variable token-max
     1+
   repeat swap - ;
 
-create entry 80 allot
-create step  80 allot
+80 constant max-entry 
+create entry max-entry allot
+create step  max-entry allot
 variable entry@
 
 : next-entry 
@@ -147,7 +155,7 @@ variable entry@
   1 token-max +! ;
 
 : instruction ( addr,l -- n )
-  entry 80 erase
+  entry max-entry erase
   entry swap cmove
   entry entry@ !
   0 begin
@@ -177,27 +185,35 @@ variable entry@
   +loop ;
 
 
+: chain-not-token ( t,i -- t )
+  1- or ;
+
+: chain-var-token ( t -- )
+  dup tk-string-index or ;
+
+: chain-assign-token ( t,i -- t )
+  over tk-type type-offset lshift -rot
+  swap tk-string-index string-offset lshift -rot
+  dup 2 - 
+  swap 1 - nth-token tk-string-index opd2-offset lshift
+  or or or ;
+
+: chain-binary-token ( t,i -- t )
+  over tk-type type-offset lshift -rot
+  swap tk-string-index string-offset lshift swap
+  dup 2 - 
+  swap 1 - opd2-offset lshift 
+  or or or ;
+
 : chain-tokens
   token-max @ 0 do
-    i nth-token dup tk-type TK-NOT = if
-      i 1- or i nth-token-ref !
-    else dup tk-type TK-VAR = if
-      dup tk-string string-index or 
-      i nth-token-ref !
-    else dup tk-type 3 > IF
-      i 2 - or
-      i 1 - opd2-offset lshift or
-      i nth-token-ref ! 
-      i nth-token dup tk-type TK-ASSIGN = if
-        dup tk-operand2 nth-token tk-string string-index
-        opd2-offset lshift
-        swap tk-operand1 or
-        TK-ASSIGN type-offset lshift or
-        i nth-token-ref !
-      else
-        drop
-      then
-    then then then
+    i nth-token 
+         dup tk-type TK-NOT = if i chain-not-token
+    else dup tk-type TK-VAR = if chain-var-token
+    else dup tk-type TK-ASSIGN = if i chain-assign-token
+    else dup tk-type 3 > IF i chain-binary-token
+    then then then then
+    i nth-token-ref !
   loop ;
 
 : find-assign ( si -- ti )
@@ -208,21 +224,6 @@ variable entry@
     then
   loop drop ;
        
-: eval ( t -- n )
-  dup tk-type LIT = if tk-operand1
-  else dup tk-type VAR = if
-    tk-operand1 
-: eval-output ( addr,l -- n )
-  find-string-index if
-    find-assign if  
-      nth-token eval
-    else
-      s" unassigned variable" exception throw
-    then
-  else
-    s" unknown variable" exception throw
-  then ;
-
 : .tk-type ( tt -- )
   dup TK-LIT = if drop ." LIT"
   else dup TK-VAR = if drop ." VAR"
@@ -235,19 +236,90 @@ variable entry@
   else drop
   then then then then then then then then ;
 
-
-
 : .token ( t -- )
   dup tk-type .tk-type space
   dup tk-type TK-VAR = if dup tk-string type then
   space 
   dup tk-operand1 .
-  tk-operand2 .
-  cr ;
+  tk-operand2 . ;
 
 : .tokens
   token-max @ 0 do
-    i . i nth-token .token 
-  loop cr ;
+    i . i nth-token .token cr
+  loop ;
+
+: is-binary-op ( tt - f )
+  16 > ;
+
+: binary-op-eval ( n,m,tt - n )
+       dup TK-AND = if drop and 
+  else dup TK-OR  = if drop or
+  else dup TK-LSHIFT = if drop lshift
+  else dup TK-RSHIFT = if drop rshift
+  else drop s" unknown binary op" exception throw
+  then then then then ;
+
+: eval ( t -- n )
+  dup tk-type dup TK-LIT = if 
+    drop tk-operand1
+  else dup TK-VAR = if
+    drop 
+    dup tk-operand2 0= if
+      dup ." find assigned var:" .token cr 
+      1 assignments +! assignments @ 20 > if s" too many assignments" exception throw then
+      tk-operand1 
+      find-assign drop
+      nth-token
+      
+      recurse
+
+  else dup TK-ASSIGN = if
+    drop tk-operand1
+    nth-token recurse
+  else dup TK-NOT = if
+    drop tk-operand1 nth-token recurse not
+  else dup is-binary-op if
+    drop
+    dup tk-type
+    swap dup tk-operand1 nth-token recurse 
+    swap tk-operand2 nth-token recurse
+    rot binary-op-eval
+  else drop s" unknown tk-type" exception throw
+  then then then then then ;
+
+: eval-output ( addr,l -- n )
+  find-string-index if
+    find-assign if  
+      nth-token eval
+    else
+      s" unassigned variable" exception throw
+    then
+  else
+    s" unknown variable" exception throw
+  then ;
 
 
+80 constant maxline
+create puzzle-line maxline allot
+
+variable file-name variable file-name-size
+
+0 value fd-in
+next-arg file-name-size ! file-name !
+
+: get-instructions
+  0 file-name @ file-name-size @ r/o open-file throw to fd-in
+  begin
+    puzzle-line maxline fd-in read-line throw while
+    puzzle-line swap 
+    2dup type cr
+    instruction drop
+  repeat drop drop
+  fd-in close-file throw ;
+
+: solve-it-1 ( -- n )
+  init
+  get-instructions 
+  swap-operators
+  chain-tokens
+  s" a" eval-output ;
