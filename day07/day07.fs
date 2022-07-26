@@ -2,7 +2,8 @@
  0 constant TK-NOOP
  1 constant TK-LIT
  2 constant TK-VAR
- 3 constant TK-NOT
+ 3 constant TK-ASSIGNED-VAR
+ 4 constant TK-NOT
 16 constant TK-ASSIGN
 17 constant TK-AND
 18 constant TK-OR
@@ -107,6 +108,11 @@ variable assignments
   string-index string-offset lshift 
   TK-VAR type-offset lshift or ;
 
+: mk-assigned-var-token ( value,addr,l -- t )
+  string-index string-offset lshift
+  swap opd2-offset lshift or
+  TK-ASSIGNED-VAR type-offset lshift or ;
+
 : mk-token ( type -- t )
   type-offset lshift ;
 
@@ -195,7 +201,7 @@ variable entry@
   over tk-type type-offset lshift -rot
   swap tk-string-index string-offset lshift -rot
   dup 2 - 
-  swap 1 - nth-token tk-string-index opd2-offset lshift
+  swap 1 - opd2-offset lshift
   or or or ;
 
 : chain-binary-token ( t,i -- t )
@@ -211,10 +217,41 @@ variable entry@
          dup tk-type TK-NOT = if i chain-not-token
     else dup tk-type TK-VAR = if chain-var-token
     else dup tk-type TK-ASSIGN = if i chain-assign-token
-    else dup tk-type 3 > IF i chain-binary-token
+    else dup tk-type TK-NOT > IF i chain-binary-token
     then then then then
     i nth-token-ref !
   loop ;
+
+: find-var-for-string ( addr,l -- ti )
+  2dup ." looking for var: " type cr
+  operand-mask -rot
+  token-max @ 0 do
+    i nth-token tk-string 2over compare 0= if
+      rot drop i -rot leave
+    then
+  loop 2drop
+  dup operand-mask = if
+    s" unknown string" exception throw
+  then ;
+
+: find-assign-for-token-index ( ti -- ti )
+  dup ." looking for assignment for token index: " . cr
+  operand-mask swap
+  token-max @ 0 do
+    dup
+    i nth-token dup tk-type TK-ASSIGN = 
+               swap tk-operand2 rot = and if
+        swap drop i swap leave
+      then
+    loop drop
+  dup operand-mask = if
+    s" unassigned variable" exception throw
+  then ;
+
+      
+: find-assign-for-string ( addr,l -- ti )
+  find-var-for-string 
+  find-assign-for-token-index ;
 
 : find-assign ( si -- ti )
   false swap token-max @ 0 do
@@ -227,6 +264,7 @@ variable entry@
 : .tk-type ( tt -- )
   dup TK-LIT = if drop ." LIT"
   else dup TK-VAR = if drop ." VAR"
+  else dup TK-ASSIGNED-VAR = if drop ." ASSIGNED VAR"
   else dup TK-ASSIGN = if drop ." ->"
   else dup TK-NOT = if drop ." NOT"
   else dup TK-AND = if drop ." AND"
@@ -234,11 +272,11 @@ variable entry@
   else dup TK-LSHIFT = if drop ." LSHIFT"
   else dup TK-RSHIFT = if drop ." RSHIFT"
   else drop
-  then then then then then then then then ;
+  then then then then then then then then then ;
 
 : .token ( t -- )
   dup tk-type .tk-type space
-  dup tk-type TK-VAR = if dup tk-string type then
+  dup tk-type dup TK-VAR = swap TK-ASSIGNED-VAR = or if dup tk-string type then
   space 
   dup tk-operand1 .
   tk-operand2 . ;
@@ -260,22 +298,26 @@ variable entry@
   then then then then ;
 
 : eval ( t -- n )
+  dup ." eval " .token cr
   dup tk-type dup TK-LIT = if 
     drop tk-operand1
+  else dup TK-ASSIGNED-VAR = if
+    tk-operand2
   else dup TK-VAR = if
     drop 
-    dup tk-operand2 0= if
-      dup ." find assigned var:" .token cr 
-      1 assignments +! assignments @ 20 > if s" too many assignments" exception throw then
-      tk-operand1 
-      find-assign drop
-      nth-token
-      
-      recurse
-
-  else dup TK-ASSIGN = if
-    drop tk-operand1
+    dup ." unassigned var: " .token cr
+    tk-string find-assign-for-string
+    dup ." found assignment: " .token cr
     nth-token recurse
+  else dup TK-ASSIGN = if
+    drop
+    ." assigning token index: " dup tk-operand1 . ." to token index: " dup tk-operand2 . cr
+    dup tk-operand1 nth-token recurse
+    swap tk-operand2 >r
+    r@ ." writing at token index: " . cr
+    dup r@ nth-token tk-string mk-assigned-var-token
+    r> nth-token-ref !
+
   else dup TK-NOT = if
     drop tk-operand1 nth-token recurse not
   else dup is-binary-op if
@@ -285,18 +327,12 @@ variable entry@
     swap tk-operand2 nth-token recurse
     rot binary-op-eval
   else drop s" unknown tk-type" exception throw
-  then then then then then ;
+  then then then then then then 
+  ." returning " dup . cr ;
 
 : eval-output ( addr,l -- n )
-  find-string-index if
-    find-assign if  
-      nth-token eval
-    else
-      s" unassigned variable" exception throw
-    then
-  else
-    s" unknown variable" exception throw
-  then ;
+  find-assign-for-string nth-token eval 
+  ." done" cr cr ;
 
 
 80 constant maxline
