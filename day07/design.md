@@ -48,5 +48,60 @@ instruction line-buffer-length @ 4 + evaluate
 and then we have 5 strings on the stack
 
 
+if a symbol FOO is not known ( find-name )
+    evaluate " defer _FOO "
+if a symbol FOO is output :
+    evaluate " : ->_FOO <signal> ; ' ->_FOO is _FOO "
+
+if a signal is a symbol BAR :
+    use " _BAR " as <signal>
+
+if a signal is a value 42 :
+    use " 42 " as <signal>
+
+
+
 PARSE-NAME parses the flow of entry
 
+: symbol ( addr,l -- addr,l )
+    s" _" pad place pad +place pad count ;
+
+123 -> x
+    2 nth-item item>symbol find-name if
+        empty-string
+        s" : ->" <<s
+        2 nth-item <<s
+        s" " <<s
+        0 nth-item 2dup number? 0= if
+            s" _" <<s
+        then 
+        append
+        s"  ; '->_" 2 nth-item <<s
+        s" _" <<s 2 nth-item <<s
+
+            a
+        s" : ->_x 123 ; ' ->_x is _x" evaluate
+    else
+
+
+find-name x if
+
+
+
+examine the number of items we have
+3 items : a simple connection 
+ 42 -> a should translate into     42 constant symbol-a
+ a -> b should translate into      
+ a -> b means that the value of symbol b is symbol a
+
+4 items : a NOT gate connection
+NOT 17 -> b means that the value of symbol a is 17 NOT
+NOT a -> b means that the value of symbol b is symbol a, NOT-ed
+
+5 items : a binary gate connection
+a AND b -> c means that the value of symbol c is symbol a, symbol b
+
+
+first item :
+ if it's a number 
+-> : parse the next name, add it to the symbols, 
