@@ -21,13 +21,13 @@ variable next-string
 create tokens max-tokens cells allot
 variable token-max 
 
-variable assignments
+create assignments max-tokens cells allot
+
 
 : init
   max-strings off
   string-data next-string !
-  token-max off
-  assignments off ;
+  token-max off ;
 
 : nth-string-ref ( si -- addr )
   cells strings + ;
@@ -211,12 +211,20 @@ variable entry@
   swap 1 - opd2-offset lshift 
   or or or ;
 
+: find-assignment-token-index ( addr,l - ti )
+  find-string-index cells assignments + @ ;
+
+: record-assignment-token-index ( i -- )
+  dup 1-
+  nth-token tk-string find-string-index drop
+  cells assignments + ! ;
+
 : chain-tokens
   token-max @ 0 do
     i nth-token 
          dup tk-type TK-NOT = if i chain-not-token
     else dup tk-type TK-VAR = if chain-var-token
-    else dup tk-type TK-ASSIGN = if i chain-assign-token
+    else dup tk-type TK-ASSIGN = if i chain-assign-token i record-assignment-token-index
     else dup tk-type TK-NOT > IF i chain-binary-token
     then then then then
     i nth-token-ref !
@@ -306,7 +314,7 @@ variable entry@
   else dup TK-VAR = if
     drop 
     dup ." unassigned var: " .token cr
-    tk-string find-assign-for-string
+    tk-string find-assignment-token-index 
     dup ." found assignment: " .token cr
     nth-token recurse
   else dup TK-ASSIGN = if
@@ -358,4 +366,5 @@ next-arg file-name-size ! file-name !
   get-instructions 
   swap-operators
   chain-tokens
-  s" a" eval-output ;
+  .tokens
+  s" a" eval-output .s cr ;

@@ -1,0 +1,69 @@
+strings
+raw-token
+set-tk-type : LIT 
+set-tk-type : VAR 
+set-tk-type : NOT 
+set-tk-type : -> 
+set-tk-type : AND 
+set-tk-type : OR 
+set-tk-type : LSHIFT 
+set-tk-type : RSHIFT 
+next-entry
+instruction
+record assignement for x
+record assignement for y
+record assignement for d
+record assignement for e
+record assignement for f
+record assignement for g
+record assignement for h
+record assignement for i
+0 LIT  123 0 
+1 VAR x 2 0 
+2   2 0 
+3 LIT  456 0 
+4 VAR y 4 0 
+5   5 0 
+6 VAR x 2 0 
+7 VAR y 4 0 
+8 AND  6 7 
+9 VAR d 6 0 
+10   10 0 
+11 VAR x 2 0 
+12 VAR y 4 0 
+13 OR  11 12 
+14 VAR e 8 0 
+15   15 0 
+16 VAR x 2 0 
+17 LIT  2 0 
+18 LSHIFT  16 17 
+19 VAR f 11 0 
+20   20 0 
+21 VAR y 4 0 
+22 LIT  2 0 
+23 RSHIFT  21 22 
+24 VAR g 13 0 
+25   25 0 
+26 VAR x 2 0 
+27 NOT  26 0 
+28 VAR h 15 0 
+29   29 0 
+30 VAR y 4 0 
+31 NOT  30 0 
+32 VAR i 16 0 
+33   33 0 
+stack contents mismatch:   15 find-assign ?true 29 ?s
+  expecting true flag and found 0 
+stack contents mismatch:   15 find-assign ?true 29 ?s
+  expecting 29 and found 4503599629467679 
+stack overflow: }t
+eval
+
+: eval-output  
+Scanning code...
+
+Nesting debugger ready!
+[ 2 ] 105553159307856 00001 
+137087B98 102638050 find-assign-for-string -> looking for var: x
+looking for assignment for token index: 1 
+

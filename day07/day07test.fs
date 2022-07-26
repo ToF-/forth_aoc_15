@@ -85,16 +85,15 @@ t{ ." instruction" cr
   chain-tokens
   .tokens
   s" h" string-index 15 ?s
-  15 find-assign ?true 29 ?s
 }t
 
-page
 t{ ." eval" cr
   s" x" eval-output 123 ?s
-  s" d" eval-output 72 's
+  s" d" eval-output 72 ?s
+  s" h" eval-output 65412 ?s
 }t
 bye
-  s" h" eval-output 65412 ?s
+
   s" d" eval-output 72 ?s
   s" e" eval-output 507 ?s
   s" f" eval-output 492 ?s
@@ -104,8 +103,8 @@ bye
   s" x" eval-output 123 ?s
   s" y" eval-output 456 ?s
 }t
-
 bye
+
 t{ ." solve-it-1" cr
   solve-it-1
   0 ?s
