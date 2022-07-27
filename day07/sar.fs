@@ -1,3 +1,8 @@
+
+( Advent of Code 2015 Day 07 )
+( ~~~~~~~~~~~~~~~~~~~~~~~~~~ )
+( ~ Some Assembly Required ~ )
+
 5 constant max-steps
 10 constant step-size
 step-size max-steps * constant steps-size
