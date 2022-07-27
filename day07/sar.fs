@@ -17,9 +17,11 @@ create steps steps-size allot
     over over c!
     1+ swap cmove ;
 
-: parse-names ( n -- addr,l,addr,l.. )
+: parse-names ( n -- n )
+  0 swap
   0 do
     parse-name 
+    dup if rot 1+ -rot then
     i nth-step-cmove
   loop ;
 
@@ -29,14 +31,6 @@ create steps steps-size allot
   pad +place
   s\" \n" pad +place
   pad count evaluate ;
-
-s" foo bar quux" instruction>steps 
-0 nth-step type cr
-1 nth-step type cr
-2 nth-step type cr
-3 nth-step type cr
-4 nth-step type cr
-bye
 
 
 : symbol ( addr,l -- addr,l )
