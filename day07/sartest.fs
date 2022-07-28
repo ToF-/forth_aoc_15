@@ -107,11 +107,15 @@ t{ ." instruction>forth"
   s" 123 -> a" instruction>forth
   forth-instruction s" : __a 123 ; ' __a is _a" ?str
 
-}t cr bye
   s" b -> x" instruction>forth
-  forth-instruction s" defer _b : _x _b ;" ?str
+  forth-instruction s" DEFER _b : _x _b ;" ?str
 
-  \ if _x_ can be found it has been deferred
-  \ so we should have s" : >_x_ 123 ; ' >_x_ is _x_ "
+  s" b AND c -> x" instruction>forth
+  forth-instruction s" DEFER _c DEFER _b : _x _b _c AND ;" ?str
+
+  s" a LSHIFT c -> x" instruction>forth 
+  s" _a" find-name 0= ?false
+  forth-instruction s" DEFER _c : _x _a _c LSHIFT ;" ?str
 }t
+
 bye

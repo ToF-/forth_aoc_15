@@ -12,8 +12,9 @@ create signals 30 allot
 variable steps#
 
 create forth-instruction-ref 80 allot
+create defer-symbol 80 allot
 
-: f|
+: forth|
   forth-instruction-ref 80 erase ;
 
 : forth-instruction ( -- addr,l )
@@ -139,59 +140,76 @@ init-operators
   then then ;
 
 
-: f> ( addr,l ) 
+: forth> ( addr,l ) 
   forth-instruction-ref s>copy ;
-: f>> ( addr,l )
+: forth>> ( addr,l )
   forth-instruction-ref s>append ;
+: >forth ( addr,l )
+  forth-instruction-ref s>prepend ;
 
-: f_> ( addr,l )
-  s" _" f>> f>> ;
+: forth_> ( addr,l )
+  s" _" forth>> ;
 
-: f>:
-  s" : _" f> ;
+: forth>:
+  s" : _" forth> ;
 
-: f>:_
-  s" : __" f> ;
+: forth>:_
+  s" : __" forth> ;
 
-: f>>bl
-  s"  " f>> ;
+: forth>>bl
+  s"  " forth>> ;
 
-: f>>sep
-  f>> f>>bl ;
+: forth>>sep
+  forth>> forth>>bl ;
 
-: f>>word ( addr,l )
+: forth>defer ( addr,l -- )
+  defer-symbol 80 erase
+  s" DEFER _" defer-symbol s>copy
+  defer-symbol s>append
+  s"  " defer-symbol s>append
+  defer-symbol count >forth ;
+
+: already-defined ( addr,l -- )
+  defer-symbol 80 erase
+  s" _" defer-symbol s>copy
+  defer-symbol s>append
+  defer-symbol count find-name ;
+
+: forth>>word ( addr,l )
   2dup is-symbol? if
-    f_> f>>bl
+    2dup already-defined 0= if 2dup forth>defer then
+    forth_> forth>>
   else
-    f>> f>>bl
-  then ;
+    forth>>
+  then
+  forth>>bl ;
 
 variable 1st-declaration
 create temp 10 allot
 
-: f>>;
+: forth>>;
   1st-declaration @ if
-    s" ;" f>>
+    s" ;" forth>>
   else
-    s" ; ' __" f>> output f>> s"  is _" f>> output f>>
+    s" ; ' __" forth>> output forth>> s"  is _" forth>> output forth>>
   then ;
 
-: f>>:output ( addr,l )
+: forth>>:output ( addr,l )
   temp 10 erase
   s" _" temp s>copy
   output temp s>append
   temp count
   find-name 0= dup 1st-declaration !
-  if f>: else f>:_ then output f>>sep ;
+  if forth>: else forth>:_ then output forth>>sep ;
   
 : 3-terms-instruction
-  f| f>>:output 0 signal f>>word f>>; ;
+  forth| forth>>:output 0 signal forth>>word forth>>; ;
 
 : 4-terms-instruction
-  f| f>>:output 0 signal f>>word 1 signal f>>word f>>; ;
+  forth| forth>>:output 0 signal forth>>word 1 signal forth>>word forth>>; ;
 
 : 5-terms-instruction
-  f| f>>:output 0 signal f>>word 1 signal f>>word 2 signal f>>word f>>; ;
+  forth| forth>>:output 0 signal forth>>word 1 signal forth>>word 2 signal forth>>word forth>>; ;
 
 : instruction>forth ( addr,l -- )
   instruction>steps
