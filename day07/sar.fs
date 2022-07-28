@@ -19,7 +19,7 @@ create sar-temp 80 allot
 
 : sar-forth ( addr, l )
   sar-code count ;
-: forth|
+: forth_
   sar-code 80 erase ;
 
 create operators 80 allot
@@ -210,25 +210,25 @@ create temp 10 allot
   
 
 : 3-points
-  forth| forth>>:output 
+  forth_ forth>>:output 
   0 #signal forth>>word 
   forth>>; ;
 
 : 4-points
-  forth| forth>>:output 
+  forth_ forth>>:output 
   0 #signal forth>>word 
   1 #signal forth>>word 
   forth>>; ;
 
 : 5-points
-  forth| forth>>:output 
+  forth_ forth>>:output 
   0 #signal forth>>word 
   1 #signal forth>>word 
   2 #signal forth>>word 
   forth>>; ;
 
 : forth>>words ( n -- )
-  forth| forth>>:output
+  forth_ forth>>:output
   steps# @ 2 - 0 do
     i #signal forth>>word
   loop forth>>; ;
@@ -239,8 +239,7 @@ create temp 10 allot
   forth>>words 
   sar-forth type cr ;
 
-: sar-value ( addr,l -- n )
-  forth|  forth_> forth>>
-  sar-forth evaluate ;
-
+: sar-value ( addr,l -- addr,l )
+  forth_  forth_> forth>>
+  sar-forth ;
 
