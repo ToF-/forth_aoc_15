@@ -60,6 +60,11 @@ t{ ." #step>copy" cr
 
 }t
 
+t{ ." wires" cr
+  init-wires
+  s" foo" wire 0 ?s
+}t
+
 t{ ." instruction>steps" cr
   s" a AND 4807 -> baz" instruction>steps
   steps# @ 5 ?s
@@ -92,6 +97,7 @@ t{ ." arrange-steps" cr
   1 #signal s" NOT" ?str
 }t
 
+bye
 123 constant _a
 t{ ." sar>forth" cr
 

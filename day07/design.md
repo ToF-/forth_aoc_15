@@ -2,6 +2,35 @@
 there are INSTRUCTIONS to connect SIGNALS to OUTPUT, through GATES.
 OUTPUTS are identified by SYMBOLS
 
+we have an array of connections
+each connection has characteristics
+
+byte 
+0    : name length (1 or 2)
+1..2 : name
+3    : connection type
+4..5 : data1 signal/wire 
+6..7 : Data2 signal/wire 
+
+connection type:
+bit 
+7    : unused
+6..4 : gate operation 000=NOOP 001=NOT 010=AND 011=OR 100=LSHIFT 110=RSHIFT
+3    : data 1 type : 0=signal 1=wire
+2    : data 2 type : 0=signal 1=wire
+1..0 : #elements: (0..3)
+
+how to execute a connection:
+read connection type
+  read #elements
+  if #elements = 0 exception
+  read data 1 type : if wire : data 1 = connection name, execute that connection else data 1 = value
+  if #elements = 3
+  read data 2 type : if wire : data 2 = connection name, execute that connection else data 2 = value
+then
+  read gate : execute corresponding forth word
+
+
 
 
 123 -> x

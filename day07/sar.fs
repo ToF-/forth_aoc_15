@@ -10,10 +10,32 @@ create steps steps-size allot
 create sar-output 10 allot
 create sar-signals 30 allot
 variable steps#
+500 constant max-wire
+
+create sar-wire max-wire cells allot
 
 : NOT ( n - n )
   -1 xor 65535 and ;
 
+create gates ' NOT , ' AND , ' OR , ' LSHIFT , ' RSHIFT '
+
+: gate ( n -- xt )
+  cells gates + execute ;
+
+hex
+10000 constant SIMPLE
+2 constant UNARY
+3 constant BINARY
+4 constant SIGNAL
+8 constant WIRE
+16 constant GATE
+
+
+
+
+
+
+create sar-wire 
 create sar-code 80 allot
 create sar-temp 80 allot
 
@@ -145,6 +167,7 @@ init-operators
   then then ;
 
 
+
 : forth> ( addr,l ) 
   sar-code s>copy ;
 : forth>> ( addr,l )
@@ -209,24 +232,6 @@ create temp 10 allot
   if forth>: else forth>:_ then output forth>>sep ;
   
 
-: 3-points
-  forth_ forth>>:output 
-  0 #signal forth>>word 
-  forth>>; ;
-
-: 4-points
-  forth_ forth>>:output 
-  0 #signal forth>>word 
-  1 #signal forth>>word 
-  forth>>; ;
-
-: 5-points
-  forth_ forth>>:output 
-  0 #signal forth>>word 
-  1 #signal forth>>word 
-  2 #signal forth>>word 
-  forth>>; ;
-
 : forth>>words ( n -- )
   forth_ forth>>:output
   steps# @ 2 - 0 do
@@ -241,5 +246,5 @@ create temp 10 allot
 
 : sar-value ( addr,l -- addr,l )
   forth_  forth_> forth>>
-  sar-forth ;
+  sar-forth evaluate ;
 
