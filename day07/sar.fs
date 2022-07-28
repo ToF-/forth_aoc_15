@@ -72,6 +72,11 @@ init-operators
   2swap c!             \ addr,l,k,dest
   + 1+ swap cmove ;
 
+: s>prepend ( addr,l,dest -- )
+  dup count pad s>copy
+  dup >r s>copy 
+  pad count r> s>append ;
+
 : init-steps
     steps step-size erase ;
 
@@ -94,7 +99,7 @@ init-operators
     dup if rot 1+ -rot then
     i nth-step>copy
   loop 
-  dup steps# ! ;
+  steps# ! ;
 
 : instruction>steps ( addr,l -- )
   init-steps
@@ -117,7 +122,8 @@ init-operators
 : output ( -- addrl,l )
   output-ref count ;
 
-: arrange-steps ( n -- )
+: arrange-steps ( -- )
+  steps# @
   dup 3 = if drop
     0 nth-step 0 signal-ref s>copy
     2 nth-step output-ref s>copy
@@ -138,6 +144,9 @@ init-operators
 : f>> ( addr,l )
   forth-instruction-ref s>append ;
 
+: f_> ( addr,l )
+  s" _" f>> f>> ;
+
 : f>:
   s" : _" f> ;
 
@@ -152,6 +161,7 @@ init-operators
 
 : f>>word ( addr,l )
   2dup is-symbol? if
+    f_> f>>bl
   else
     f>> f>>bl
   then ;

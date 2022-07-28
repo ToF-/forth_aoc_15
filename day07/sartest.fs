@@ -19,6 +19,14 @@ t{ ." s>append" cr
   temp count s" a quux" ?str
 }t
 
+t{ ." s>prepend" cr
+  
+  temp 20 erase
+  s" bar" temp s>copy
+  s" foo " temp s>prepend
+  temp count s" foo bar" ?str
+}t
+
 t{ ." is-operator?" cr
   s" AND" is-operator? ?true
   s" ->" is-operator? ?true
@@ -54,7 +62,7 @@ t{ ." nth-step>copy" cr
 
 t{ ." instruction>steps" cr
   s" a AND 4807 -> baz" instruction>steps
-  5 ?s
+  steps# @ 5 ?s
 
   0 nth-step s" a" ?str
   1 nth-step s" AND" ?str
@@ -62,7 +70,8 @@ t{ ." instruction>steps" cr
   3 nth-step s" ->" ?str
   4 nth-step s" baz" ?str
 
-  s" a bar quux" instruction>steps 3 ?s
+  s" a bar quux" instruction>steps 
+  steps# @ 3 ?s
 }t
 
 t{ ." arrange-steps" cr
@@ -98,8 +107,9 @@ t{ ." instruction>forth"
   s" 123 -> a" instruction>forth
   forth-instruction s" : __a 123 ; ' __a is _a" ?str
 
+}t cr bye
   s" b -> x" instruction>forth
-  forth-instruction s" defer _b : x _b ;" ?str
+  forth-instruction s" defer _b : _x _b ;" ?str
 
   \ if _x_ can be found it has been deferred
   \ so we should have s" : >_x_ 123 ; ' >_x_ is _x_ "
