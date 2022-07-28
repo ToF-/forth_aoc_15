@@ -3,22 +3,24 @@
 ( ~~~~~~~~~~~~~~~~~~~~~~~~~~ )
 ( ~ Some Assembly Required ~ )
 
-5 constant max-steps
+5  constant max-steps
 10 constant step-size
 step-size max-steps * constant steps-size
 create steps steps-size allot
-create output-ref 10 allot
-create signals 30 allot
+create sar-output 10 allot
+create sar-signals 30 allot
 variable steps#
 
-create forth-instruction-ref 80 allot
-create defer-symbol 80 allot
+: NOT ( n - n )
+  -1 xor 65535 and ;
 
+create sar-code 80 allot
+create sar-temp 80 allot
+
+: sar-forth ( addr, l )
+  sar-code count ;
 : forth|
-  forth-instruction-ref 80 erase ;
-
-: forth-instruction ( -- addr,l )
-  forth-instruction-ref count ;
+  sar-code 80 erase ;
 
 create operators 80 allot
 operators 80 erase
@@ -32,11 +34,11 @@ operators 80 erase
 
 init-operators
 
-: nth-string ( n,addr -- addr )
+: #string ( n,addr -- addr )
   swap 0 ?do count + loop ;
 
 : operator ( n -- )
-  operators nth-string ;
+  operators #string ;
 
 : is-operator? ( addr,l -- f )
   false -rot 6 0 do 
@@ -62,6 +64,9 @@ init-operators
 : is-symbol? ( addr,l -- f )
   2dup is-number? -rot is-operator? or 0= ;
 
+: s>empty ( addr )
+  dup c@ erase ;
+
 : s>copy ( addr,l,dest -- )
   over over c!
   1+ swap cmove ;
@@ -81,24 +86,24 @@ init-operators
 : init-steps
     steps step-size erase ;
 
-: nth-step-ref ( n, addr )
+: #step-ref ( n, addr )
     step-size * steps + ;
 
-: nth-step ( n -- addr,l )
-    nth-step-ref count ;
+: #step ( n -- addr,l )
+    #step-ref count ;
 
-: nth-step-cmove ( addr,l,n -- )
-  nth-step-ref s>copy ;
+: #step-cmove ( addr,l,n -- )
+  #step-ref s>copy ;
 
-: nth-step>copy ( addr,l,n -- )
-  over if nth-step-cmove else drop 2drop then ;
+: #step>copy ( addr,l,n -- )
+  over if #step-cmove else drop 2drop then ;
 
 : parse-names ( n -- n )
   0 swap
   0 do
     parse-name 
     dup if rot 1+ -rot then
-    i nth-step>copy
+    i #step>copy
   loop 
   steps# ! ;
 
@@ -111,41 +116,41 @@ init-operators
   evaluate ;
 
 : step>output ( n -- )
-  output-ref s>copy ;
+  sar-output s>copy ;
 
 
-: signal-ref ( n -- addr )
-  signals nth-string ;
+: #sar-signal-ref ( n -- addr )
+  sar-signals #string ;
 
-: signal ( n -- addr,l )
-  signal-ref count ;
+: #signal ( n -- addr,l )
+  #sar-signal-ref count ;
 
 : output ( -- addrl,l )
-  output-ref count ;
+  sar-output count ;
 
 : arrange-steps ( -- )
   steps# @
   dup 3 = if drop
-    0 nth-step 0 signal-ref s>copy
-    2 nth-step output-ref s>copy
+    0 #step 0 #sar-signal-ref s>copy
+    2 #step sar-output s>copy
   else 4 = if
-    1 nth-step 0 signal-ref s>copy
-    0 nth-step 1 signal-ref s>copy
-    3 nth-step output-ref s>copy
+    1 #step 0 #sar-signal-ref s>copy
+    0 #step 1 #sar-signal-ref s>copy
+    3 #step sar-output s>copy
   else 
-    0 nth-step 0 signal-ref s>copy
-    2 nth-step 1 signal-ref s>copy
-    1 nth-step 2 signal-ref s>copy
-    4 nth-step output-ref s>copy
+    0 #step 0 #sar-signal-ref s>copy
+    2 #step 1 #sar-signal-ref s>copy
+    1 #step 2 #sar-signal-ref s>copy
+    4 #step sar-output s>copy
   then then ;
 
 
 : forth> ( addr,l ) 
-  forth-instruction-ref s>copy ;
+  sar-code s>copy ;
 : forth>> ( addr,l )
-  forth-instruction-ref s>append ;
+  sar-code s>append ;
 : >forth ( addr,l )
-  forth-instruction-ref s>prepend ;
+  sar-code s>prepend ;
 
 : forth_> ( addr,l )
   s" _" forth>> ;
@@ -163,17 +168,18 @@ init-operators
   forth>> forth>>bl ;
 
 : forth>defer ( addr,l -- )
-  defer-symbol 80 erase
-  s" DEFER _" defer-symbol s>copy
-  defer-symbol s>append
-  s"  " defer-symbol s>append
-  defer-symbol count >forth ;
+  sar-temp 80 erase
+  s" DEFER _" sar-temp s>copy
+  sar-temp s>append
+  s"  " sar-temp s>append
+  sar-temp count >forth ;
 
 : already-defined ( addr,l -- )
-  defer-symbol 80 erase
-  s" _" defer-symbol s>copy
-  defer-symbol s>append
-  defer-symbol count find-name ;
+  sar-temp 80 erase
+  sar-temp s>copy
+  s" _" sar-temp s>prepend
+  sar-temp count find-name ;
+
 
 : forth>>word ( addr,l )
   2dup is-symbol? if
@@ -202,20 +208,39 @@ create temp 10 allot
   find-name 0= dup 1st-declaration !
   if forth>: else forth>:_ then output forth>>sep ;
   
-: 3-terms-instruction
-  forth| forth>>:output 0 signal forth>>word forth>>; ;
 
-: 4-terms-instruction
-  forth| forth>>:output 0 signal forth>>word 1 signal forth>>word forth>>; ;
+: 3-points
+  forth| forth>>:output 
+  0 #signal forth>>word 
+  forth>>; ;
 
-: 5-terms-instruction
-  forth| forth>>:output 0 signal forth>>word 1 signal forth>>word 2 signal forth>>word forth>>; ;
+: 4-points
+  forth| forth>>:output 
+  0 #signal forth>>word 
+  1 #signal forth>>word 
+  forth>>; ;
 
-: instruction>forth ( addr,l -- )
-  instruction>steps
-  arrange-steps
-  steps# @ dup 3 = if drop 3-terms-instruction
-  else 4 = if 4-terms-instruction
-  else 5-terms-instruction
-  then then
-;
+: 5-points
+  forth| forth>>:output 
+  0 #signal forth>>word 
+  1 #signal forth>>word 
+  2 #signal forth>>word 
+  forth>>; ;
+
+: forth>>words ( n -- )
+  forth| forth>>:output
+  steps# @ 2 - 0 do
+    i #signal forth>>word
+  loop forth>>; ;
+
+: sar>forth ( addr,l -- )
+  instruction>steps 
+  arrange-steps 
+  forth>>words 
+  sar-forth type cr ;
+
+: sar-value ( addr,l -- n )
+  forth|  forth_> forth>>
+  sar-forth evaluate ;
+
+
