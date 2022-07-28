@@ -13,7 +13,7 @@ variable steps#
 
 create forth-instruction-ref 80 allot
 
-: init-forth-instruction
+: f|
   forth-instruction-ref 80 erase ;
 
 : forth-instruction ( -- addr,l )
@@ -23,7 +23,7 @@ create operators 80 allot
 operators 80 erase
 
 : init-operators
-  s\" \3NOT\3AND\2OR\6LSHIFT\6RSHIFT\2->\5 NOT \5 AND \4 OR \8 LSHIFT \8 RSHIFT \4 -> "
+  s\" \3NOT\3AND\2OR\6LSHIFT\6RSHIFT\2->"
   0 do
     dup i + c@
     operators i + c!
@@ -38,7 +38,7 @@ init-operators
   operators nth-string ;
 
 : is-operator? ( addr,l -- f )
-  false -rot 12 0 do 
+  false -rot 6 0 do 
     i operator count 2over compare 0= if
       rot drop true -rot leave
     then
@@ -65,6 +65,13 @@ init-operators
   over over c!
   1+ swap cmove ;
 
+: s>append ( addr,l,dest -- )
+  dup c@               \ addr,l,dest,k
+  rot 2dup +           \ addr,dest,k,l,k+l
+  2swap over           \ addr,l,k+l,dest,k,dest
+  2swap c!             \ addr,l,k,dest
+  + 1+ swap cmove ;
+
 : init-steps
     steps step-size erase ;
 
@@ -75,25 +82,7 @@ init-operators
     nth-step-ref count ;
 
 : nth-step-cmove ( addr,l,n -- )
-  >r 
-  2dup 
-  2dup is-number?   
-  -rot is-operator? or 
-  r> swap if
-    -rot
-    s"  " pad place
-    pad +place
-    s"  " pad +place
-    pad count
-    rot nth-step-ref s>copy
-  else
-    -rot
-    s" _" pad place
-    pad +place
-    s" _ " pad +place
-    pad count
-    rot nth-step-ref s>copy
-  then ;
+  nth-step-ref s>copy ;
 
 : nth-step>copy ( addr,l,n -- )
   over if nth-step-cmove else drop 2drop then ;
@@ -143,31 +132,62 @@ init-operators
     4 nth-step output-ref s>copy
   then then ;
 
+
+: f> ( addr,l ) 
+  forth-instruction-ref s>copy ;
+: f>> ( addr,l )
+  forth-instruction-ref s>append ;
+
+: f>:
+  s" : _" f> ;
+
+: f>:_
+  s" : __" f> ;
+
+: f>>bl
+  s"  " f>> ;
+
+: f>>sep
+  f>> f>>bl ;
+
+: f>>word ( addr,l )
+  2dup is-symbol? if
+  else
+    f>> f>>bl
+  then ;
+
+variable 1st-declaration
+create temp 10 allot
+
+: f>>;
+  1st-declaration @ if
+    s" ;" f>>
+  else
+    s" ; ' __" f>> output f>> s"  is _" f>> output f>>
+  then ;
+
+: f>>:output ( addr,l )
+  temp 10 erase
+  s" _" temp s>copy
+  output temp s>append
+  temp count
+  find-name 0= dup 1st-declaration !
+  if f>: else f>:_ then output f>>sep ;
+  
+: 3-terms-instruction
+  f| f>>:output 0 signal f>>word f>>; ;
+
+: 4-terms-instruction
+  f| f>>:output 0 signal f>>word 1 signal f>>word f>>; ;
+
+: 5-terms-instruction
+  f| f>>:output 0 signal f>>word 1 signal f>>word 2 signal f>>word f>>; ;
+
 : instruction>forth ( addr,l -- )
   instruction>steps
   arrange-steps
-  init-forth-instruction
-  s" : " pad place
-  output pad +place
-  0 signal pad +place
-  s" ;" pad +place
-  pad count forth-instruction-ref s>copy
-  ;
-
-: symbol ( addr,l -- addr,l )
-  s" _" pad place
-  pad +place 
-  pad count ;
-
-: assign ( addr,l,addr,l -- addr,l )
-  2>r
-  s" : ->" pad place
-  2r@ pad +place
-  s" " pad +place
-  pad +place
-  s"  ; '->" pad +place
-  2r@ pad +place
-  s"  is "
-  2r> pad +place
-  pad count ;
-
+  steps# @ dup 3 = if drop 3-terms-instruction
+  else 4 = if 4-terms-instruction
+  else 5-terms-instruction
+  then then
+;
