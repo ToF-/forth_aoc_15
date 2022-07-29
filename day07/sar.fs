@@ -1,28 +1,29 @@
 500 constant max-connections
 create connections max-connections cells allot
 
-: conn<name ( cnx,addr,l -- )
-  dup 2 > if s" name is too long" exception throw then
-  over c@ 8 lshift -rot
-  1 > if 1+ c@ else drop 0 then 
-  or 48 lshift or ;
+0 constant conn-empty
+
+: string>pname ( addr,l -- u16)
+  over c@        
+  8 lshift -rot  \ encode 1st char
+  1 > if 
+    1+ c@        \ encode 2nd char
+  else 
+    drop 0 
+  then or ;
 
 : s>empty ( addr -- )
   0 swap c! ;
 
 : s>cons ( c,addr -- )
-    dup c@           \ c,addr,l
-    1+               \ c,addr,l'
-    2dup swap c!     \ c,addr,l'
-    + c! ;
+    dup c@ 1+            \ increment length
+    over over
+    swap c!              \ write length
+    + c! ;               \ append c at end of addr
   
-
-: conn>name ( cnx,dest -- )
+: pname>string ( u16,addr )
   dup s>empty
-  swap 48 rshift 256 /mod      \ dest,c2,c1
-  rot swap over s>cons         \ dest,c2
-  swap ?dup if 
-    swap s>cons 
-  else drop then ;
-    
+  swap 256 /mod          \ decode c1 and c2
+  rot swap over          \ c2,addr,c1,addr
+  s>cons s>cons ;
 

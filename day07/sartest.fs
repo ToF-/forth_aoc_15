@@ -3,16 +3,19 @@ require sar.fs
 
 page
 
-t{ ." conn<name" cr
+t{ ." >pname" cr
   
-  0 s" ab" conn<name
-
-  pad conn>name 
-  pad count s" ab" ?str
-
-  0 s" x" conn<name
-
-  pad conn>name
-  pad count s" x" ?str
+  s" az" string>pname
+  pad    pname>string
+  pad count s" az" ?str
 }t
+
+t{ ." string>connection" cr
+
+  s" a" string>connection 
+  conection>pname 
+  pad pname>string
+  pad count s" az" ?str
+}
+
 bye
