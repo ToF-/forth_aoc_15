@@ -1,7 +1,10 @@
 500 constant max-connections
 create connections max-connections cells allot
+variable #connections
 
 0 constant conn-empty
+#connections off
+65535 constant u16mask 
 
 : string>pname ( addr,l -- u16)
   over c@        
@@ -27,3 +30,47 @@ create connections max-connections cells allot
   rot swap over          \ c2,addr,c1,addr
   s>cons s>cons ;
 
+: connection>pname ( cnx -- pname )
+  48 rshift u16mask and ;
+
+: connection<pname! ( cnx,pname -- cnx )
+  u16mask 48 lshift
+  -1 xor rot and
+  swap 48 lshift or ;
+
+: (find-connection) ( pname -- cnx,T,F )
+  false swap
+  connections #connections @
+  over + swap do
+    dup i @ connection>pname = if
+      swap drop i true
+    then
+  loop drop ;
+
+: find-connection ( pname -- cnx,T|F )
+  #connections @ if
+    (find-connection)
+  else
+    drop false
+  then ;
+
+: add-connection ( pname -- cnx )
+  0 swap connection<pname!
+  #connections dup @ 
+  dup max-connections < if
+    connections + 
+    rot swap !
+    1 swap +!
+  else
+    drop drop drop
+    s" too many connections!" exception throw
+  then ;
+    
+    
+: connection ( pname -- cnx )
+  dup find-connection if
+    drop
+  else
+    dup add-connection
+    find-connection
+  then ;

@@ -12,10 +12,12 @@ t{ ." >pname" cr
 
 t{ ." string>connection" cr
 
-  s" a" string>connection 
-  conection>pname 
+  s" a" string>pname
+  connection 
+  .s
+  dbg connection>pname 
   pad pname>string
   pad count s" az" ?str
-}
+}t
 
 bye
