@@ -40,12 +40,12 @@ variable #connections
 
 : (find-connection) ( pname -- cnx,T,F )
   false swap
-  connections #connections @
-  over + swap do
+  connections #connections @ cells
+  bounds do
     dup i @ connection>pname = if
-      swap drop i true
+      swap drop i @ true
     then
-  loop drop ;
+  cell +loop drop ;
 
 : find-connection ( pname -- cnx,T|F )
   #connections @ if
@@ -55,17 +55,10 @@ variable #connections
   then ;
 
 : add-connection ( pname -- cnx )
+  assert( #connections @ max-connections < )
   0 swap connection<pname!
-  #connections dup @ 
-  dup max-connections < if
-    connections + 
-    rot swap !
-    1 swap +!
-  else
-    drop drop drop
-    s" too many connections!" exception throw
-  then ;
-    
+  connections #connections @ + !
+  1 #connections +! ;
     
 : connection ( pname -- cnx )
   dup find-connection if
