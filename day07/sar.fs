@@ -2,68 +2,86 @@
 create connections max-connections cells allot
 variable #connections
 
-0 constant conn-empty
+0  constant signal 
+1  constant wired
+
+16 constant u16-offset
+u16-offset 3 * constant output-offset
+u16-offset 2 * constant descriptor-offset
+0 constant empty-connection
 #connections off
 65535 constant u16mask 
+127   constant u7mask
+7     constant u3mask
 
-: string>pname ( addr,l -- u16)
-  over c@        
-  8 lshift -rot  \ encode 1st char
-  1 > if 
-    1+ c@        \ encode 2nd char
-  else 
-    drop 0 
-  then or ;
+0   constant noop-gate
+1   constant not-gate
+2   constant and-gate
+3   constant or-gate
+6   constant lshift-gate
+7   constant rshift-gate
 
-: s>empty ( addr -- )
-  0 swap c! ;
+: not ( u64 -- u64 )
+  -1 xor ;
 
-: s>cons ( c,addr -- )
-    dup c@ 1+            \ increment length
-    over over
-    swap c!              \ write length
-    + c! ;               \ append c at end of addr
+create gates 
+  ' noop , ' not  , ' and    , ' or     , 
+  ' noop , ' noop , ' lshift , ' rshift ,
+
+: gate ( u3 -- xt )
+  cells gates + @ ;
+
+: connection>descriptor ( cnx -- desc )
+  descriptor-offset rshift 
+  u7mask and ;
+
+: connection>input-type-1 ( cnx -- f )
+  connection>descriptor
+  1 and ;
   
-: pname>string ( u16,addr )
-  dup s>empty
-  swap 256 /mod          \ decode c1 and c2
-  rot swap over          \ c2,addr,c1,addr
-  s>cons s>cons ;
+: connection>input-1 ( cnx -- u16 )
+  u16mask and ;
 
-: connection>pname ( cnx -- pname )
-  48 rshift u16mask and ;
+: connection>output ( cnx -- u16 )
+  output-offset rshift u16mask and ;
 
-: connection<pname! ( cnx,pname -- cnx )
-  u16mask 48 lshift
-  -1 xor rot and
-  swap 48 lshift or ;
+: connection>gate-type ( cnx -- u3 )
+  connection>descriptor 
+  3 rshift u3mask and ;
 
-: (find-connection) ( pname -- cnx,T,F )
-  false swap
-  connections #connections @ cells
-  bounds do
-    dup i @ connection>pname = if
-      swap drop i @ true
-    then
-  cell +loop drop ;
+: connection>input1! ( cnx,u16 -- cnx )
+  or ;
+  
+: connection>output! ( cnx,u16 -- cnx )
+  swap u16mask output-offset lshift not and
+  swap output-offset lshift or ;
 
-: find-connection ( pname -- cnx,T|F )
-  #connections @ if
-    (find-connection)
-  else
-    drop false
-  then ;
+: string>output ( addr,l -- u16 )
+  over c@
+  8 lshift -rot
+  1 > if 1+ c@ else drop 0 then
+  or ;
 
-: add-connection ( pname -- cnx )
-  assert( #connections @ max-connections < )
-  0 swap connection<pname!
-  connections #connections @ + !
-  1 #connections +! ;
-    
-: connection ( pname -- cnx )
-  dup find-connection if
-    drop
-  else
-    dup add-connection
-    find-connection
-  then ;
+: connection>descriptor ( cnx -- u7 )
+  descriptor-offset rshift 127 and ;
+
+: connection>descriptor! ( cnx,desc -- cnx)
+  127 descriptor-offset lshift not
+  rot and 
+  swap descriptor-offset lshift or ;
+
+: make-simple-connection ( addr,l,u16 -- cnx )
+  empty-connection 
+  swap connection>input1!
+  -rot string>output connection>output! ;
+
+: make-unary-connection ( addr,l,u16,g -- cnx )
+  3 lshift 
+  empty-connection swap
+  connection>descriptor!
+  swap connection>input1!
+  -rot string>output connection>output! ;
+
+: eval ( cnx -- u16 )
+  dup  connection>input-1 
+  swap connection>gate-type gate execute ;
