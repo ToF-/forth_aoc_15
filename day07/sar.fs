@@ -53,6 +53,7 @@ create gates
 : gate ( u3 -- xt )
   cells gates + @ ;
 
+
 : string>output ( addr,l -- u16 )
   over c@
   8 lshift -rot
@@ -61,5 +62,8 @@ create gates
 
 
 : eval ( cnx -- value )
-  cnx-input1 >field ;
+  dup cnx-input1 >field swap
+  cnx-gate >field gate execute ;
+    
+    
 

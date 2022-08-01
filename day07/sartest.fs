@@ -3,6 +3,11 @@ require sar.fs
 
 page
 
+
+: .cnx 
+  dup 2 base ! u. decimal cr
+  hex u. decimal cr ;
+
 t{ ." storing several informations in a cell" cr
   2 base !  1001011000111 decimal
   (         ==  ----       )
@@ -18,14 +23,31 @@ t{ ." storing several informations in a cell" cr
   
 
 t{ ." building a connection" cr
+  ."   for a simple signal" cr
   new-connection
-  s" az" string>output cnx-output <field!
+  s" az" string>output 
+         cnx-output      <field!
   signal cnx-input1-type <field!
-  1 cnx-size <field!
-  4807 cnx-input1 <field!
-  dup 2 base ! u. decimal cr
-  dup hex u. decimal cr
+  1      cnx-size        <field!
+  4807   cnx-input1      <field!
+
+  dup .cnx
   eval 4807 ?s
+
+  ." for a not gate with a signal" cr
+  new-connection
+  s" by" string>output
+         cnx-output      <field!
+  signal cnx-input1-type <field!
+  and-gate cnx-gate      <field!
+  2      cnx-size        <field!
+  4807   cnx-input1      <field!
+
+  2 gate ' not ?s
+  dup .cnx
+  dbg eval 4807 not ?s
+         
 }t
+
 
 bye
