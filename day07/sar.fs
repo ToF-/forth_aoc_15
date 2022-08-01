@@ -8,7 +8,7 @@ variable #connections
 16 constant u16-offset
 u16-offset 3 * constant output-offset
 u16-offset 2 * constant descriptor-offset
-0 constant empty-connection
+0 constant new-connection
 #connections off
 65535 constant u16mask 
 127   constant u7mask
@@ -24,6 +24,28 @@ u16-offset 2 * constant descriptor-offset
 : not ( u64 -- u64 )
   -1 xor ;
 
+: mask ( size -- mask )
+  1 swap lshift 1- ;
+
+: clear ( cell,offset,size -- cell' )
+  mask swap lshift not and ;
+
+: <field! ( cell,value,offset,size -- cell' )
+  2>r swap 2r@ clear swap
+  r> mask and
+  r> lshift or ;
+
+: >field ( cell,offset,size -- value )
+  mask -rot rshift swap and ;
+
+ 0 16 2constant cnx-input1
+16 16 2constant cnx-input2
+32  2 2constant cnx-size
+34  1 2constant cnx-input1-type
+35  1 2constant cnx-input2-type
+36  3 2constant cnx-gate
+48 16 2constant cnx-output
+
 create gates 
   ' noop , ' not  , ' and    , ' or     , 
   ' noop , ' noop , ' lshift , ' rshift ,
@@ -31,57 +53,13 @@ create gates
 : gate ( u3 -- xt )
   cells gates + @ ;
 
-: connection>descriptor ( cnx -- desc )
-  descriptor-offset rshift 
-  u7mask and ;
-
-: connection>input-type-1 ( cnx -- f )
-  connection>descriptor
-  1 and ;
-  
-: connection>input-1 ( cnx -- u16 )
-  u16mask and ;
-
-: connection>output ( cnx -- u16 )
-  output-offset rshift u16mask and ;
-
-: connection>gate-type ( cnx -- u3 )
-  connection>descriptor 
-  3 rshift u3mask and ;
-
-: connection>input1! ( cnx,u16 -- cnx )
-  or ;
-  
-: connection>output! ( cnx,u16 -- cnx )
-  swap u16mask output-offset lshift not and
-  swap output-offset lshift or ;
-
 : string>output ( addr,l -- u16 )
   over c@
   8 lshift -rot
   1 > if 1+ c@ else drop 0 then
   or ;
 
-: connection>descriptor ( cnx -- u7 )
-  descriptor-offset rshift 127 and ;
 
-: connection>descriptor! ( cnx,desc -- cnx)
-  127 descriptor-offset lshift not
-  rot and 
-  swap descriptor-offset lshift or ;
+: eval ( cnx -- value )
+  cnx-input1 >field ;
 
-: make-simple-connection ( addr,l,u16 -- cnx )
-  empty-connection 
-  swap connection>input1!
-  -rot string>output connection>output! ;
-
-: make-unary-connection ( addr,l,u16,g -- cnx )
-  3 lshift 
-  empty-connection swap
-  connection>descriptor!
-  swap connection>input1!
-  -rot string>output connection>output! ;
-
-: eval ( cnx -- u16 )
-  dup  connection>input-1 
-  swap connection>gate-type gate execute ;

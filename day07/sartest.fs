@@ -3,25 +3,29 @@ require sar.fs
 
 page
 
-t{ ." a connection is made of either" cr
+t{ ." storing several informations in a cell" cr
+  2 base !  1001011000111 decimal
+  (         ==  ----       )
+  5 6 4 <field!
+  3 11 3 <field!
+  dup
+  2 base !  1100101000111 decimal
+  (         == ----       )
+  ?s 
+  dup 6 4 >field 5 ?s
+     11 3 >field 3 ?s
+}t
+  
 
-   ."     one signal input" cr
-   s" az" 4807 make-simple-connection
-   dup connection>input-1 4807 ?s
-   dup connection>input-type-1 signal ?s
-   dup connection>gate-type noop-gate ?s
-   dup connection>output 256 /mod char a ?s char z ?s
-   eval 4807 ?u
-
-   ."     not gate" cr
-  s" by" 4807 not-gate make-unary-connection
-  dup connection>input-1 4807 ?s
-  dup connection>input-type-1 signal ?s
-  dup connection>gate-type not-gate ?s
-  dup connection>output 256 /mod char b ?s char y ?s
-  eval 4807 not ?u
+t{ ." building a connection" cr
+  new-connection
+  s" az" string>output cnx-output <field!
+  signal cnx-input1-type <field!
+  1 cnx-size <field!
+  4807 cnx-input1 <field!
+  dup 2 base ! u. decimal cr
+  dup hex u. decimal cr
+  eval 4807 ?s
 }t
 
 bye
-
-
