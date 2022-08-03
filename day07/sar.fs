@@ -1,6 +1,7 @@
 500 constant max-connections
 create connections max-connections cells allot
-variable #connections
+variable next-connection
+connections next-connection !
 
 0  constant signal 
 1  constant wired
@@ -9,7 +10,8 @@ variable #connections
 u16-offset 3 * constant output-offset
 u16-offset 2 * constant descriptor-offset
 0 constant new-connection
-#connections off
+
+
 65535 constant u16mask 
 127   constant u7mask
 7     constant u3mask
@@ -60,10 +62,41 @@ create gates
   1 > if 1+ c@ else drop 0 then
   or ;
 
+: #connections ( -- n )
+  next-connection @ connections - cell / ;
 
-: eval ( cnx -- value )
-  dup cnx-input1 >field swap
-  cnx-gate >field gate execute ;
-    
-    
+: add-connection ( cnx -- )
+  next-connection @ !
+  cell next-connection +! ;
 
+: find-connection ( u16 -- addr,T,F )
+  #connections if 
+    false swap
+    next-connection @ connections do
+      i @ cnx-output >field over = if
+        nip i true rot
+      then
+    cell +loop
+    drop
+  else
+    drop false
+  then ;
+
+: connection! ( cnx -- )
+  dup cnx-output >field find-connection if
+    !
+  else
+    add-connection
+  then ;
+  
+: connection ( u16 -- cnx )
+  find-connection if
+    @ 
+  else
+    s" connection not found" exception throw
+  then ;
+
+:eval ( cnx -- n )
+  dup cnx-input1 >field
+  swap dup cnx-input1-type >field wired = if
+    
