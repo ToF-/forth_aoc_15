@@ -96,7 +96,30 @@ create gates
     s" connection not found" exception throw
   then ;
 
-:eval ( cnx -- n )
+defer eval-rec
+
+: input1 ( cnx - u16 )
   dup cnx-input1 >field
-  swap dup cnx-input1-type >field wired = if
-    
+  over cnx-input1-type >field wired = if
+    connection eval-rec
+  then ;
+
+: eval-simple ( cnx -- n )
+  input1
+  swap cnx-gate >field 
+  gate execute ;
+
+: eval-double ( cnx - n )
+  input1
+  over cnx-input2 >field
+  rot dup >r cnx-input2-type >field wired = if
+    connection eval-rec
+  then
+  r> cnx-gate >field
+  gate execute ;
+
+: eval ( cnx -- n )
+  dup cnx-size >field 3 < 
+  if eval-simple else eval-double then ;
+
+' eval is eval-rec

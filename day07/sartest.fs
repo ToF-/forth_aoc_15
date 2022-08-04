@@ -32,7 +32,6 @@ t{ ." building a connection" cr
   4807   cnx-input1      <field!
 
   dup connection!
-  dup .cnx
   eval 4807 ?s
 
   ." for a not gate with a signal" cr
@@ -44,7 +43,6 @@ t{ ." building a connection" cr
   2      cnx-size        <field!
   4807   cnx-input1      <field!
 
-  dup .cnx
   eval 4807 not ?s
 
   ." for a gate with two input signal" cr
@@ -58,7 +56,6 @@ t{ ." building a connection" cr
   4807   cnx-input1      <field!
   4217   cnx-input2      <field!
 
-  dup .cnx
   eval 4161 ?s
 
   ." for a simple wire" cr
@@ -72,8 +69,7 @@ s" az" string>output find-connection ?true drop
   s" az" string>output
          cnx-input1      <field!
 
-  dup .cnx
-  dbg eval 4807 ?s
+  eval 4807 ?s
 
 
 }t
