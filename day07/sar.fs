@@ -32,12 +32,12 @@ u16-offset 2 * constant descriptor-offset
 : clear ( cell,offset,size -- cell' )
   mask swap lshift not and ;
 
-: <field! ( cell,value,offset,size -- cell' )
+: <-! ( cell,value,offset,size -- cell' )
   2>r swap 2r@ clear swap
   r> mask and
   r> lshift or ;
 
-: >field ( cell,offset,size -- value )
+: -> ( cell,offset,size -- value )
   mask -rot rshift swap and ;
 
  0 16 2constant cnx-input1
@@ -73,7 +73,7 @@ create gates
   #connections if 
     false swap
     next-connection @ connections do
-      i @ cnx-output >field over = if
+      i @ cnx-output -> over = if
         nip i true rot
       then
     cell +loop
@@ -83,7 +83,7 @@ create gates
   then ;
 
 : connection! ( cnx -- )
-  dup cnx-output >field find-connection if
+  dup cnx-output -> find-connection if
     !
   else
     add-connection
@@ -99,27 +99,27 @@ create gates
 defer eval-rec
 
 : input1 ( cnx - u16 )
-  dup cnx-input1 >field
-  over cnx-input1-type >field wired = if
+  dup cnx-input1 ->
+  swap cnx-input1-type -> wired = if
     connection eval-rec
   then ;
 
 : eval-simple ( cnx -- n )
-  input1
-  swap cnx-gate >field 
+  dup input1
+  swap cnx-gate -> 
   gate execute ;
 
 : eval-double ( cnx - n )
-  input1
-  over cnx-input2 >field
-  rot dup >r cnx-input2-type >field wired = if
+  dup input1                                \ cnx,in1
+  over cnx-input2 ->                    \ cnx,in1,u16
+  rot swap over                             \ in1,cnx,u16,cnx
+  cnx-input2-type -> wired = if         
     connection eval-rec
-  then
-  r> cnx-gate >field
-  gate execute ;
+  then                                      \ in1,cnx,in2
+  swap cnx-gate gate execute ;
 
 : eval ( cnx -- n )
-  dup cnx-size >field 3 < 
+  dup cnx-size -> 3 < 
   if eval-simple else eval-double then ;
 
 ' eval is eval-rec
