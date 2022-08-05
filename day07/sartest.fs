@@ -32,7 +32,7 @@ t{ ." building a connection" cr
   dup connection!
   eval 4807 ?s
 
-  ." for a not gate with a signal" cr
+  ."   for a not gate with a signal" cr
   new-connection
   s" by" s>key cnx-output      bf!
   signal       cnx-input1-type bf!
@@ -42,7 +42,7 @@ t{ ." building a connection" cr
   dup connection!
   eval 4807 u16not ?s
 
-  ." for a gate with two input signals" cr
+  ."   for a gate with two input signals" cr
   new-connection
   s" cx" s>key cnx-output      bf!
   signal       cnx-input1-type bf!
@@ -54,12 +54,7 @@ t{ ." building a connection" cr
   dup connection!
   eval 4161 ?s
 
-  ." finding connections" cr
-  s" az" s>key connection eval 4807 ?u
-  s" by" s>key connection eval 4807 u16not ?u
-  s" cx" s>key connection eval 4161 ?u
-
-  ." for a simple wire" cr
+  ."   for a simple wire" cr
   new-connection
   s" dw" s>key cnx-output      bf!
   wired        cnx-input1-type bf!
@@ -71,7 +66,7 @@ s" az" s>key find-connection ?true drop
 
   eval 4807 ?s
 
-  ." for two wires" cr
+  ."   for two wires" cr
   new-connection
   3      cnx-size        bf!
   s" ev" s>key
@@ -85,7 +80,12 @@ s" az" s>key find-connection ?true drop
   or-gate cnx-gate       bf!
   eval 65535 ?s
 
+}t
 
+t{ ." finding connections" cr
+  s" az" s>key connection eval 4807 ?u
+  s" by" s>key connection eval 4807 u16not ?u
+  s" cx" s>key connection eval 4161 ?u
 }t
 
 
