@@ -26,18 +26,21 @@ u16-offset 2 * constant descriptor-offset
 : not ( u64 -- u64 )
   -1 xor ;
 
+: u16not ( u16 -- u16 )
+  not u16mask and ;
+
 : mask ( size -- mask )
   1 swap lshift 1- ;
 
 : clear ( cell,offset,size -- cell' )
   mask swap lshift not and ;
 
-: <-! ( cell,value,offset,size -- cell' )
+: bf! ( cell,value,offset,size -- cell' )
   2>r swap 2r@ clear swap
   r> mask and
   r> lshift or ;
 
-: -> ( cell,offset,size -- value )
+: bf@ ( cell,offset,size -- value )
   mask -rot rshift swap and ;
 
  0 16 2constant cnx-input1
@@ -49,14 +52,14 @@ u16-offset 2 * constant descriptor-offset
 48 16 2constant cnx-output
 
 create gates 
-  ' noop , ' not  , ' and    , ' or     , 
+  ' noop , ' u16not  , ' and    , ' or     , 
   ' noop , ' noop , ' lshift , ' rshift ,
 
 : gate ( u3 -- xt )
   cells gates + @ ;
 
 
-: string>output ( addr,l -- u16 )
+: s>key ( addr,l -- u16 )
   over c@
   8 lshift -rot
   1 > if 1+ c@ else drop 0 then
@@ -73,7 +76,7 @@ create gates
   #connections if 
     false swap
     next-connection @ connections do
-      i @ cnx-output -> over = if
+      i @ cnx-output bf@ over = if
         nip i true rot
       then
     cell +loop
@@ -83,7 +86,7 @@ create gates
   then ;
 
 : connection! ( cnx -- )
-  dup cnx-output -> find-connection if
+  dup cnx-output bf@ find-connection if
     !
   else
     add-connection
@@ -99,27 +102,28 @@ create gates
 defer eval-rec
 
 : input1 ( cnx - u16 )
-  dup cnx-input1 ->
-  swap cnx-input1-type -> wired = if
+  dup cnx-input1 bf@
+  swap cnx-input1-type bf@ wired = if
     connection eval-rec
   then ;
 
 : eval-simple ( cnx -- n )
   dup input1
-  swap cnx-gate -> 
+  swap cnx-gate bf@ 
   gate execute ;
 
 : eval-double ( cnx - n )
   dup input1                                \ cnx,in1
-  over cnx-input2 ->                    \ cnx,in1,u16
+  over cnx-input2 bf@                    \ cnx,in1,u16
   rot swap over                             \ in1,cnx,u16,cnx
-  cnx-input2-type -> wired = if         
+  cnx-input2-type bf@ wired = if         
     connection eval-rec
   then                                      \ in1,cnx,in2
-  swap cnx-gate gate execute ;
+  swap cnx-gate bf@ 
+  gate execute ;
 
 : eval ( cnx -- n )
-  dup cnx-size -> 3 < 
+  dup cnx-size bf@ 3 < 
   if eval-simple else eval-double then ;
 
 ' eval is eval-rec
