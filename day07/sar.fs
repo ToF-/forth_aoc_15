@@ -20,8 +20,9 @@ u16-offset 2 * constant descriptor-offset
 1   constant not-gate
 2   constant and-gate
 3   constant or-gate
-6   constant lshift-gate
-7   constant rshift-gate
+4   constant lshift-gate
+5   constant rshift-gate
+6   constant assign-op
 
 : not ( u64 -- u64 )
   -1 xor ;
@@ -127,3 +128,121 @@ defer eval-rec
   if eval-simple else eval-double then ;
 
 ' eval is eval-rec
+
+5  constant max-steps
+10 constant step-size
+step-size max-steps * constant steps-size
+create steps steps-size allot
+variable steps#
+
+: s>copy ( addr,l,dest -- )
+  over over c!
+  1+ swap cmove ;
+    
+: init-steps
+  steps# off
+  steps steps-size erase ;
+
+: #step-ref ( n -- addr )
+  step-size * steps + ;
+
+: #step ( n -- addr,l )
+  #step-ref count ;
+
+: #step-cmove ( addr,l,n -- )
+  #step-ref s>copy  ;
+
+: #step>copy ( addr,l,n -- )
+  over if #step-cmove else drop 2drop then ;
+
+: parse-steps 
+  break:
+  0 swap
+  5 0 do 
+    parse-name
+    dup if rot 1+ -rot then
+    i #step>copy
+  loop steps# ! ;
+
+: prepare-entry ( addr,l -- )
+  s" parse-steps " pad place
+  pad +place
+  s\" \n" pad +place ;
+
+: s>steps ( addr,l -- )
+  init-steps
+  prepare-entry
+  pad count evaluate ;
+
+0 constant number-step
+1 constant wire-step
+2 constant gate-step
+3 constant output-step
+
+create operators 80 allot
+operators 80 erase
+
+
+: init-operators
+  s\" \4NOOP\3NOT\3AND\2OR\6LSHIFT\6RSHIFT\2->"
+  0 do
+    dup i + c@
+    operators i + c!
+  loop drop ;
+
+init-operators
+
+: #string ( n,addr -- addr )
+  swap 0 ?do count + loop ;
+
+: operator ( n -- )
+  operators #string ;
+
+: is-operator? ( addr,l -- i,T|F )
+  false -rot 7 0 do 
+    i operator count 2over compare 0= if
+      rot drop i true 2swap leave
+    then
+  loop 
+  2drop ;
+
+: is-digit? ( c -- f )
+  dup [char] 0 >= swap [char] 9 <= and ;
+
+: is-number? ( addr,l -- f )
+  true -rot
+  over + swap do
+    i c@ dup is-digit? 0= if
+      bl <> if drop false then
+    else 
+      drop
+    then
+  loop ;
+
+: is-symbol? ( addr,l -- f )
+  2dup is-number? -rot is-operator? or 0= ;
+
+: parse-step ( addr,l -- n,0|k|1  )
+  2dup is-number? if
+    s>number d>s number-step
+  else 2dup is-operator? if
+    -rot 2drop  gate-step
+  else
+    s>key wire-step
+  then then ;
+
+: steps>cnx ( addr,l -- cnx )
+  s>steps
+  steps# @ 3 = if
+    new-connection
+    2 #step parse-step wire-step = if
+      cnx-output bf!
+    else
+      s" output wire missin" exception throw
+    then
+    0 #step parse-step number-step if
+      swap cnx-input1 bf!
+      signal cnx-input1-type bf!
+    then
+    dup connection!
+  then ;

@@ -88,5 +88,34 @@ t{ ." finding connections" cr
   s" cx" s>key connection eval 4161 ?u
 }t
 
+t{ ." parsing instruction steps " cr
+  s"   4807 cx AND -> az" s>steps
+  steps# @ 5 ?s
+  0 #step s" 4807" ?str
+  1 #step s" cx" ?str
+  2 #step s" AND" ?str
+  3 #step s" ->" ?str
+  4 #step s" az" ?str
+}t
+
+t{ ." parsing steps" cr
+  s" 4807" parse-step number-step ?s 4807 ?s
+  s" az" parse-step wire-step ?s s" az" s>key ?s
+  s" NOT" parse-step gate-step ?s not-gate ?s
+}t
+
+t{ ." interpreting steps to connection" cr
+  ."    for a simple signal" cr
+    s" 4807 -> ax"
+    steps>cnx
+    dup cnx-size bf@ 1 ?s
+    dup cnx-output bf@ s" ax" s>key ?str
+    dup cnx-input1 bf@ 4807 ?s
+    dup cnx-input1-type bf@ signal ?s
+    dup cnx-gate bf@ 0 ?s
+    drop
+
+
+}t
 
 bye
