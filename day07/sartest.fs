@@ -161,4 +161,16 @@ t{  ." reading puzzle" cr
   s" puzzle07.txt" read-instructions
   s" a" s>key connection eval 956 ?s
 }t
+
+t{ ." overriding a wire" cr
+  s" puzzle07.txt" read-instructions
+  s" b" s>key connection
+  956 cnx-input1 bf!
+  1 cnx-size bf!
+  signal cnx-input1-type bf!
+  noop-gate cnx-gate bf!
+  connection!
+  s" a" s>key connection eval 40149 ?s
+}t
+
 bye
