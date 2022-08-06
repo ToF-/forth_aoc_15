@@ -1,7 +1,12 @@
 500 constant max-connections
 create connections max-connections cells allot
 variable next-connection
-connections next-connection !
+
+: init-connections
+  connections next-connection ! ;
+
+
+init-connections
 
 0  constant signal 
 1  constant wired
@@ -54,7 +59,7 @@ u16-offset 2 * constant descriptor-offset
 
 create gates 
   ' noop , ' u16not  , ' and    , ' or     , 
-  ' noop , ' noop , ' lshift , ' rshift ,
+  ' lshift , ' rshift , ' noop ,
 
 : gate ( u3 -- xt )
   cells gates + @ ;
@@ -65,6 +70,9 @@ create gates
   8 lshift -rot
   1 > if 1+ c@ else drop 0 then
   or ;
+
+: .key ( u16 -- )
+  256 /mod emit emit ;
 
 : #connections ( -- n )
   next-connection @ connections - cell / ;
@@ -121,11 +129,17 @@ defer eval-rec
     connection eval-rec
   then                                      \ in1,cnx,in2
   swap cnx-gate bf@ 
-  gate execute ;
+  gate execute  ;
 
 : eval ( cnx -- n )
-  dup cnx-size bf@ 3 < 
-  if eval-simple else eval-double then ;
+  dup dup cnx-size bf@ 3 < 
+  if eval-simple else eval-double then 
+  dup -rot
+  cnx-input1 bf!
+  1 cnx-size bf! 
+  signal cnx-input1-type bf!
+  noop-gate cnx-gate bf! 
+  connection! ;
 
 ' eval is eval-rec
 
@@ -156,7 +170,6 @@ variable steps#
   over if #step-cmove else drop 2drop then ;
 
 : parse-steps 
-  break:
   0 swap
   5 0 do 
     parse-name
@@ -231,18 +244,74 @@ init-operators
     s>key wire-step
   then then ;
 
+: .cnx 
+  dup 2 base ! u. decimal cr
+  hex u. decimal cr ;
+
+: cnx-output! ( cnx -- cnx' )
+  steps# @ 1- #step
+  parse-step assert( wire-step = )
+  cnx-output bf! ;
+
+: cnx-signal1! ( cnx,value -- cnx' )
+  cnx-input1 bf!
+  signal cnx-input1-type bf! ;
+
+: cnx-wired1! ( cnx,value -- cnx' )
+  cnx-input1 bf!
+  wired cnx-input1-type bf! ;
+
+: cnx-input1! ( cnx,addr,l -- cnx' )
+  parse-step number-step = 
+  if cnx-signal1!  else cnx-wired1!  then ;
+  
+: cnx-signal2! ( cnx,value -- cnx' )
+  cnx-input2 bf!
+  signal cnx-input2-type bf! ;
+
+: cnx-wired2! ( cnx,value -- cnx' )
+  cnx-input2 bf!
+  wired cnx-input2-type bf! ;
+
+: cnx-input2! ( cnx,addr,l -- cnx' )
+  parse-step number-step = 
+  if cnx-signal2!  else cnx-wired2!  then ;
+  
+: cnx-binary-gate! ( cnx,addr,l -- cnx' )
+  parse-step assert( gate-step = )
+  cnx-gate bf! ;
+
 : steps>cnx ( addr,l -- cnx )
   s>steps
-  steps# @ 3 = if
-    new-connection
-    2 #step parse-step wire-step = if
-      cnx-output bf!
-    else
-      s" output wire missin" exception throw
-    then
-    0 #step parse-step number-step if
-      swap cnx-input1 bf!
-      signal cnx-input1-type bf!
-    then
-    dup connection!
-  then ;
+  new-connection
+  cnx-output!
+  steps# @ 3 = if 
+    1 cnx-size bf!
+    0 #step cnx-input1!
+  else steps# @ 4 = if
+    2 cnx-size bf!
+    1 #step cnx-input1!
+    not-gate cnx-gate bf!
+  else
+    3 cnx-size bf!
+    0 #step cnx-input1!
+    2 #step cnx-input2!
+    1 #step cnx-binary-gate!
+  then then
+  dup connection! ;
+
+80 constant instruction-size
+create instruction instruction-size allot
+
+0 value fd-in
+: read-instructions ( addr,l -- )
+  init-connections
+  r/o open-file throw to fd-in
+  begin
+    instruction instruction-size fd-in read-line throw while
+    instruction swap
+    steps>cnx
+    drop
+  repeat drop
+  fd-in close-file throw ;
+

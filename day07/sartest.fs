@@ -4,10 +4,6 @@ require sar.fs
 page
 
 
-: .cnx 
-  dup 2 base ! u. decimal cr
-  hex u. decimal cr ;
-
 t{ ." storing several informations in a cell" cr
   2 base !  1001011000111 decimal
   (         ==  ----       )
@@ -89,11 +85,11 @@ t{ ." finding connections" cr
 }t
 
 t{ ." parsing instruction steps " cr
-  s"   4807 cx AND -> az" s>steps
+  s"   4807 AND cx -> az" s>steps
   steps# @ 5 ?s
   0 #step s" 4807" ?str
-  1 #step s" cx" ?str
-  2 #step s" AND" ?str
+  1 #step s" AND" ?str
+  2 #step s" cx" ?str
   3 #step s" ->" ?str
   4 #step s" az" ?str
 }t
@@ -109,13 +105,60 @@ t{ ." interpreting steps to connection" cr
     s" 4807 -> ax"
     steps>cnx
     dup cnx-size bf@ 1 ?s
-    dup cnx-output bf@ s" ax" s>key ?str
+    dup cnx-output bf@ s" ax" s>key ?s
     dup cnx-input1 bf@ 4807 ?s
     dup cnx-input1-type bf@ signal ?s
     dup cnx-gate bf@ 0 ?s
     drop
+    s" ax" s>key connection eval 4807 ?s
 
+  ."    for a simple wire" cr
+    s" ax -> cw"
+    steps>cnx
+    dup cnx-size bf@ 1 ?s
+    dup cnx-output bf@ s" cw" s>key ?s
+    dup cnx-input1 bf@ s" ax" s>key ?s
+    dup cnx-input1-type bf@ wired ?s
+    dup cnx-gate bf@ 0 ?s
+    drop
 
+  ."    for a not gate" cr
+    s" NOT 4807 -> dw"
+    steps>cnx
+    dup cnx-size bf@ 2 ?s
+    dup cnx-output bf@ s" dw" s>key ?s
+    dup cnx-input1 bf@ 4807 ?s
+    dup cnx-input1-type bf@ signal ?s
+    dup cnx-gate bf@ not-gate ?s
+    drop
+
+  ."    for a and gate" cr
+    s" 4807 AND dw -> ez"
+    steps>cnx
+    dup cnx-size bf@ 3 ?s
+    dup cnx-output bf@ s" ez" s>key ?s
+    dup cnx-input1 bf@ 4807 ?s
+    dup cnx-input1-type bf@ signal ?s
+    dup cnx-input2 bf@ s" dw" s>key ?s
+    dup cnx-input2-type bf@ wired ?s
+    dup cnx-gate bf@ and-gate ?s
+    drop
 }t
 
+t{  ." reading sample" cr
+  s" sample.txt" read-instructions
+  s" d" s>key connection eval 72 ?s
+  s" e" s>key connection eval 507 ?s
+  s" f" s>key connection eval 492 ?s
+  s" g" s>key connection eval 114 ?s
+  s" h" s>key connection eval 65412 ?s
+  s" i" s>key connection eval 65079 ?s
+  s" x" s>key connection eval 123 ?s
+  s" y" s>key connection eval 456 ?s
+}t
+
+t{  ." reading puzzle" cr
+  s" puzzle07.txt" read-instructions
+  s" a" s>key connection eval 956 ?s
+}t
 bye
