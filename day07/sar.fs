@@ -5,7 +5,6 @@ variable next-connection
 : init-connections
   connections next-connection ! ;
 
-
 init-connections
 
 0  constant signal 
