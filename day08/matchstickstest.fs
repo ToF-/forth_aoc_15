@@ -36,4 +36,18 @@ t{ ." read string from the sample and compute total overhead length" cr
 t{ ." read string from the puzzle and compute total overhead length" cr
   s" puzzle08.txt" overhead 1342 ?s
 }t
+
+t{ ." encoded-length tells how many chars it takes to encode a string" cr
+  s\" \"\"" encoded-length 6 ?s
+  s\" \"abc\"" encoded-length 9 ?s
+  s\" \"aaa\\\"aaa\"" encoded-length 16 ?s
+  s\" \"\\x27\"" encoded-length 11 ?s
+}t
+
+t{ ." read string from the sample and compute total encoded overhead length" cr
+  s" sample.txt" encoded 19 ?s
+}t
+t{ ." read string from the puzzle and compute total encoded overhead length" cr
+  s" puzzle08.txt" encoded 2074 ?s
+}t
 bye

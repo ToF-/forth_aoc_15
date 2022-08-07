@@ -28,6 +28,18 @@ char \ constant ESC
 80 constant line-size
 create line line-size allot
 
+: encoded-length ( addr,l -- )
+  2dup dump
+  0 -rot
+  bounds do
+    i c@ dup [char] " = 
+    swap ESC = or if 
+      2 + 
+    else 
+      1+ 
+    then
+  loop 2 + ; 
+
 0 value fd-in
 : overhead ( addr,l -- )
   r/o open-file throw to fd-in
@@ -44,3 +56,17 @@ create line line-size allot
   fd-in close-file throw 
   - ;
 
+: encoded ( addr,l -- )
+  r/o open-file throw to fd-in
+  0 0
+  begin
+    line line-size fd-in read-line throw while
+    line swap
+    2dup encoded-length -rot
+    code-length
+    rot + 
+    -rot + 
+    swap
+  repeat drop
+  fd-in close-file throw 
+  - ;
