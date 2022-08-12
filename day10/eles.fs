@@ -1,22 +1,14 @@
 \ elves look elves say
-
-65536 65536 * constant max-output
-variable output-ref
-variable input-ref
-
-max-output allocate throw output-ref !
-max-output allocate throw input-ref !
-
-: output ( -- addr )
-  output-ref @ ;
-
-: input ( -- addr )
-  input-ref @ ;
+\ gforth -m 1G 
+10000000 constant max-output
+create output max-output allot
+create input  max-output allot
+variable output-size
+variable input-size
 
 : c>output ( c -- )
-  output dup c@ 1+ 
-  2dup swap c!
-  + c! ;
+  output output-size @ + c!
+  1 output-size +! ;
 
 : say>ouput ( c,n -- )
   ?dup if
@@ -28,6 +20,7 @@ max-output allocate throw input-ref !
 
 : look-and-say ( addr,l -- )
   output max-output erase
+  output-size off
   [char] * 0 2swap
   bounds do
     over i c@ <> if
@@ -40,13 +33,13 @@ max-output allocate throw input-ref !
 
 : iterate ( addr,l,n -- )
   -rot
-  dup input c!
-  input 1+ swap cmove
+  dup input-size !
+  input swap cmove
   0 do
-    input count look-and-say
-    output count dup input c! 
-    input 1+ swap cmove
-  loop ;
+    input input-size @ look-and-say
+    output output-size @ dup input-size !
+    input swap cmove 
+  loop  ;
 
     
   

@@ -1,0 +1,7 @@
+[2J[1;1H1 becomes 11
+11 becomes 21
+21 becomes 1211
+1211 becomes 111221
+iterate
+stack contents mismatch:   output-size @ 0 ?s
+  expecting 0 and found 34772 
