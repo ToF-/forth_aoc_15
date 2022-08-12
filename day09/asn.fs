@@ -156,20 +156,27 @@ s" Tristram"      s" Arbre" 90 add-distance
   loop ;
 
 variable min-route-length
+variable max-route-length
 
 : update-min-route-length ( n -- )
   min-route-length dup @
   rot min swap ! ;
 
-: find-min-route-length ( -- n ) 
+: update-max-route-length ( n -- )
+  max-route-length dup @
+  rot max swap ! ;
+
+: find-min-max-route-length ( -- imin,max ) 
   8 initial
   100000 min-route-length !
+  -100000 max-route-length !
   begin
     route-length
-    update-min-route-length
+    dup update-min-route-length
+    update-max-route-length
     next-permutation
     0 >= while
   repeat
-  min-route-length @ ;
+  min-route-length @ 
+  max-route-length @ ;
 
-  

@@ -81,7 +81,7 @@ t{ ." permute route length" cr
 }t
 
 t{ ." find min route length" cr
-  find-min-route-length 0 ?s
+  find-min-max-route-length swap 141 ?s 736 ?s
 }t
 
 bye
