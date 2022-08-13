@@ -30,7 +30,7 @@ t{ ." swap set items" cr
 
 t{ ." swap pairs" cr
   4 initial
-  -1 swap-pairs
+  -1 reverse-suffix
   0 set-ref @ 3 ?s
   1 set-ref @ 2 ?s
   2 set-ref @ 1 ?s

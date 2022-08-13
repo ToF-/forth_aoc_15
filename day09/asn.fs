@@ -34,7 +34,7 @@ defer fold-set-xt
     1-
   repeat nip ;
     
-: swap-pairs ( i -- n )
+: reverse-suffix ( i -- n )
   1+ set-size @ 1-
   begin 
     2dup < while
@@ -54,7 +54,7 @@ defer use-permutation
 : next-permutation ( -- pos )
   set-size @ 2 -
   first-non-reversed
-  dup swap-pairs
+  dup reverse-suffix
   dup 0 >= if
     dup first-greater
     over swap-pair
