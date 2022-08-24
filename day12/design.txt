@@ -1,0 +1,17 @@
+[ : open a list
+] : close a list
+{ : open an object
+} : close an object
+" : open or close a string (no meta in this puzzle)
+: : introduce a member
+, : separate members from of an object or a list
+
+{ : Object, 0
+"red" : over
+} : multiply
+, : add
+[ : push 0 ( no need for flag )
+
+string : push 0
+"red" :
+
