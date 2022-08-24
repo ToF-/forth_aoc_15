@@ -40,7 +40,14 @@ t{ ." numeric value" cr
 }t
 t{ ." string" cr
   s\" [\"foo" parse-json in-a-string? ?true
+  clearstack
   s\" [\"foo\"" parse-json in-a-string? ?false
+  clearstack
+}t
+t{ ." attribute value" cr
+  s\" {\"foo\"" parse-json expect-value? @ ?false
+  clearstack
+  s\" {\"foo\":" parse-json expect-value? @ ?true
   clearstack
 }t
 
