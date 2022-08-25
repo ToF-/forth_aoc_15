@@ -8,7 +8,7 @@
 4 constant nbr
 
 80 constant string-max
-create current-string-value string-max
+create current-string-value string-max allot
 : openJS-OBJECTect ( -- O,0 )
   JS-OBJECT 0 ;
 
@@ -70,31 +70,37 @@ variable expect-value?
   last-string @ last-string-len @ 
   s" red" compare 0= ;
 
+1 constant next-byte
+
 : parse-json ( addr,l -- ... )
   bounds do
     i c@ dup [char] { = if drop 
       JS-OBJECT 0
-      1
       expect-value? off
+      next-byte
     else dup [char] } = if drop
       swap assert( JS-OBJECT or )
-      1
+      +
+      next-byte
     else dup [char] [ = if drop
       JS-LIST 0 
-      1
+      next-byte
       expect-value? off
     else dup [char] ] = if drop 
       swap assert( JS-LIST = )
-      1
+      +
+      next-byte
     else dup is-digit? over is-minus? or if drop
       i js-number 
-      >r + r>
+      >r 
+      + 
+      r>
     else dup [char] " = if drop
       in-a-string? 0= if
         JS-STRING 0
         i 1+ last-string !
         last-string-len off
-        1
+        next-byte
       else ( ending a string )
         i last-string @ - last-string-len !
         drop assert( JS-STRING = )
@@ -103,18 +109,21 @@ variable expect-value?
         last-string-is-red? and if
           swap RED or swap 
         then
-        1
+        next-byte
       then
     else dup [char] : = if drop 
       expect-value? on
-      1
+      next-byte
     else
       drop
-      1
+      next-byte
     else dup [char] , = if drop
-      1
+      next-byte
     then then then then then then then then
   +loop ;
+
+: init-parser ( addr,l -- 0,addr,l )
+  0 -rot ;
 
 : extract-number ( addr,l -- n )
   false 0 2swap
@@ -144,6 +153,8 @@ create line line-size allot
   0
   begin
     line line-size fd-in read-line throw while
-    line swap extract-number +
+    line swap 
+    parse-json
   repeat
   fd-in close-file throw drop ;
+
