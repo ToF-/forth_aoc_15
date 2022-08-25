@@ -61,49 +61,59 @@ create current-string-value string-max
 : in-a-string? ( ... -- f )
   over JS-STRING = ;
 
+  
 variable last-string
 variable last-string-len
 variable expect-value?
 
+: last-string-is-red? ( -- f )
+  last-string @ last-string-len @ 
+  s" red" compare 0= ;
+
 : parse-json ( addr,l -- ... )
   bounds do
-    i c@ dup [char] { = if
-      drop JS-OBJECT 0
+    i c@ dup [char] { = if drop 
+      JS-OBJECT 0
       1
       expect-value? off
-    else dup [char] } = if
-      drop
+    else dup [char] } = if drop
       swap assert( JS-OBJECT or )
       1
-    else dup [char] [ = if
-      drop JS-LIST 0 
+    else dup [char] [ = if drop
+      JS-LIST 0 
       1
       expect-value? off
-    else dup [char] ] = if
-      drop 
+    else dup [char] ] = if drop 
       swap assert( JS-LIST = )
       1
-    else dup is-digit? over is-minus? or if
-      drop
+    else dup is-digit? over is-minus? or if drop
       i js-number 
-    else dup [char] " = if
-      drop
+      >r + r>
+    else dup [char] " = if drop
       in-a-string? 0= if
-        drop JS-STRING 0
-        i last-string !
+        JS-STRING 0
+        i 1+ last-string !
         last-string-len off
         1
-      else
+      else ( ending a string )
+        i last-string @ - last-string-len !
         drop assert( JS-STRING = )
+        over JS-OBJECT and 
+        expect-value? @ and
+        last-string-is-red? and if
+          swap RED or swap 
+        then
         1
       then
-    else dup [char] : = if
-      drop expect-value? on
+    else dup [char] : = if drop 
+      expect-value? on
       1
     else
       drop
       1
-    then then then then then then then
+    else dup [char] , = if drop
+      1
+    then then then then then then then then
   +loop ;
 
 : extract-number ( addr,l -- n )
