@@ -154,7 +154,9 @@ create line line-size allot
   begin
     line line-size fd-in read-line throw while
     line swap 
+    2dup type cr
     parse-json
+    .s cr
   repeat
   fd-in close-file throw drop ;
 
