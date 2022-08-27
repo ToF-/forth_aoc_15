@@ -47,7 +47,7 @@ t{ ." adding values" cr
   s" [42,17,23]" init-parser parse-json 82 ?s
   s\" {\"foo\":42, \"bar\":17, \"quux\":23}" init-parser parse-json 82 ?s
   s\" {\"foo\":[42,17,23] \"bar\":17, \"quux\":23}" init-parser parse-json 122 ?s 
-  s\" {\"a\": [ -35, 0 ]}" init-parser parse-json -35 ?s
+  s\" {\"a\": [ -35, 0" init-parser parse-json -35 ?s
 }t
 
 t{ ." sum sample" cr
@@ -56,5 +56,9 @@ t{ ." sum sample" cr
 
 t{ ." sum puzzle" cr
   s" puzzle12.txt" sum 156366 ?s
+}t
+t{ ." sum puzzle excluding red" cr
+  exclude-red on
+  s" puzzle12.txt" sum 96852 ?s
 }t
 bye

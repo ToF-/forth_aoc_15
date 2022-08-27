@@ -65,6 +65,9 @@ create current-string-value string-max allot
 variable last-string
 variable last-string-len
 variable expect-value?
+variable exclude-red
+
+exclude-red off
 
 : last-string-is-red? ( -- f )
   last-string @ last-string-len @ 
@@ -79,7 +82,8 @@ variable expect-value?
       expect-value? off
       next-byte
     else dup [char] } = if drop
-      swap assert( JS-OBJECT or )
+      swap dup assert( JS-OBJECT or )
+      RED and exclude-red @ and if drop 0 then
       +
       next-byte
     else dup [char] [ = if drop
@@ -152,6 +156,7 @@ create line line-size allot
   r/o open-file throw to fd-in
   0
   begin
+    line line-size erase
     line line-size fd-in read-line throw while
     line swap 
     2dup type cr
