@@ -88,16 +88,16 @@ exclude-red off
       next-byte
     else dup [char] [ = if drop
       JS-LIST 0 
-      next-byte
       expect-value? off
+      next-byte
     else dup [char] ] = if drop 
       swap assert( JS-LIST = )
       +
       next-byte
     else dup is-digit? over is-minus? or if drop
       i js-number 
-      >r 
-      + 
+      >r
+      +
       r>
     else dup [char] " = if drop
       in-a-string? 0= if
@@ -129,24 +129,6 @@ exclude-red off
 : init-parser ( addr,l -- 0,addr,l )
   0 -rot ;
 
-: extract-number ( addr,l -- n )
-  false 0 2swap
-  ?dup if
-    bounds do
-      i c@ dup is-digit? if
-        [char] 0 - 
-        swap 10 * +
-      else
-        is-minus? if
-          nip true swap
-        then
-      then
-    loop
-  else
-    drop
-  then
-  swap if negate then ;
-
 80 constant line-size
 create line line-size allot
 
@@ -159,9 +141,9 @@ create line line-size allot
     line line-size erase
     line line-size fd-in read-line throw while
     line swap 
-    2dup type cr
+    2dup type ."   :" 
     parse-json
-    .s cr
+    dup . cr
   repeat
   fd-in close-file throw drop ;
 
